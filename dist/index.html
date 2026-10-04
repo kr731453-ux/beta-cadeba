@@ -3,7 +3,7 @@
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#28553f"><meta name="description" content="Organizá tu cadena, sorteá turnos y registrá comprobantes."><title>Ronda · Cadena de pagos</title><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png"><link rel="stylesheet" href="style.css"></head>
 <body>
 <header><a class="brand" href="#">◉ <span>ronda</span></a><span class="beta">BETA</span><span class="headnote">Tu cadena, en orden.</span><button id="install" class="secondary" hidden>Instalar app</button></header>
-<main>
+<main data-section="setup">
 <div class="intro"><div><p class="eyebrow">CADENA DE PAGOS</p><h1>Entre todos,<br><span>paso a paso.</span></h1><p>Organizá el grupo, sorteá los turnos y llevá los comprobantes en un solo lugar.</p></div><div class="introaside"><span class="dot"></span> Espacio de prueba personal<p>Los datos y comprobantes se guardan en este navegador. Todavía no se comparten entre participantes.</p></div></div>
 <nav aria-label="Secciones"><button data-tab="setup" class="active" aria-current="page"><span class="step">01</span> <span>Mi cadena</span></button><button data-tab="calendar"><span class="step">02</span> <span>Sorteo y fechas</span></button><button data-tab="payments"><span class="step">03</span> <span>Comprobantes</span></button></nav>
 <div id="notice" role="status" aria-live="polite"></div>
@@ -14,7 +14,7 @@
 </section>
 <section id="calendar" class="panel" hidden><div class="sectionhead"><div><p class="eyebrow">UNA FECHA PARA CADA PERSONA</p><h2>El orden lo decide el azar</h2></div><button id="draw" class="primary">Sortear fechas</button></div><div id="drawDescription" class="hint"></div><div id="summary" class="stats"></div><div id="turns" class="timeline"></div></section>
 <section id="payments" class="panel" hidden><div class="sectionhead"><div><p class="eyebrow">CADA APORTE CUENTA</p><h2>Comprobantes de pago</h2></div></div><label class="turnlabel">Turno de cobro<select id="round"></select></label><p class="hint">Adjuntá una imagen o un PDF (hasta 5 MB). Un comprobante queda pendiente hasta que lo apruebes manualmente.</p><div id="paymentSummary" class="stats"></div><div id="receipts" class="receipts"></div></section>
-<footer><span>Ronda · Primera beta<br><small>Registro de aportes. No realiza transferencias ni verifica pagos bancarios.</small></span><div><button id="export" class="secondary">Exportar respaldo</button><button id="newChain" class="secondary">Nueva cadena</button></div></footer>
+<footer><span>Ronda · Primera beta<br><small>Registro de aportes. No realiza transferencias ni verifica pagos bancarios.</small></span><div><a class="secondary android-download" href="Ronda-Beta-Android.apk" download>Descargar APK Android</a><button id="export" class="secondary">Exportar respaldo</button><button id="newChain" class="secondary">Nueva cadena</button></div></footer>
 </main><script src="app.js"></script></body></html>
 
 

@@ -17,3 +17,5 @@
  .turn{flex-wrap:wrap}.turnbody{min-width:140px}.turndate{width:100%;padding-left:47px;text-align:left}
  footer{margin-top:28px}footer div{display:grid;grid-template-columns:1fr 1fr;width:100%}footer button{font-size:12px;padding:10px}
 }
+@media(max-width:700px){main[data-section]:not([data-section="setup"]) .intro{display:none}}
+.android-download{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;font-size:13px;font-weight:600;padding:11px 17px;border-radius:8px;min-height:44px}.native-app .android-download{display:none}@media(max-width:700px){footer .android-download{grid-column:1/-1}}

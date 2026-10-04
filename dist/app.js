@@ -1,5 +1,6 @@
 'use strict';
 const $=id=>document.getElementById(id);
+if(window.RondaAndroid)document.documentElement.classList.add('native-app');
 const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
 const emptyState=()=>({name:'',amount:10000,currency:'ARS',start:today(),frequency:'7',people:[],turns:[],receipts:{},drawnAt:null});
 let state=emptyState(),db,busy=false;
@@ -20,7 +21,7 @@ function openDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open('
 function read(){return new Promise((resolve,reject)=>{const r=db.transaction('data').objectStore('data').get('chain');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
 function write(next){return new Promise((resolve,reject)=>{const tx=db.transaction('data','readwrite');tx.objectStore('data').put(next,'chain');tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error)})}
 async function commit(next){if(busy)throw Error('Esperá a que termine el guardado.');busy=true;try{await write(next);state=next;render()}finally{busy=false}}
-function switchTab(id){document.querySelectorAll('.panel').forEach(el=>el.hidden=el.id!==id);document.querySelectorAll('[data-tab]').forEach(el=>{el.classList.toggle('active',el.dataset.tab===id);if(el.dataset.tab===id)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')})}
+function switchTab(id){document.querySelector('main').dataset.section=id;document.querySelectorAll('.panel').forEach(el=>el.hidden=el.id!==id);document.querySelectorAll('[data-tab]').forEach(el=>{el.classList.toggle('active',el.dataset.tab===id);if(el.dataset.tab===id)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')})}
 document.querySelectorAll('[data-tab]').forEach(el=>el.onclick=()=>switchTab(el.dataset.tab));
 function render(){
  $('chainName').value=state.name;$('amount').value=amountFormat.format(state.amount);$('currency').value=state.currency;$('start').value=state.start;$('frequency').value=state.frequency;
@@ -34,7 +35,7 @@ function render(){
  $('summary').innerHTML=locked?`<div class="stat"><small>Aporte por persona / turno</small><strong>${money(state.amount)}</strong></div><div class="stat"><small>Fondo por turno</small><strong>${money(state.amount*state.people.length)}</strong></div><div class="stat"><small>Turnos asignados</small><strong>${numberFormat.format(state.turns.length)}</strong></div>`:'';
  $('turns').innerHTML=locked?state.turns.map((t,i)=>`<div class="turn"><span class="turnnumber">${String(i+1).padStart(2,'0')}</span><div class="turnbody"><strong>${escapeHtml(state.people.find(p=>p.id===t.personId).name)}</strong><small>Recibe ${money(state.amount*state.people.length)}</small></div><div class="turndate">${dateLabel(t.date)}<small>Turno de cobro</small></div></div>`).join(''):'<div class="empty">Las fechas aparecerán acá después del sorteo.</div>';
  const selected=$('round').value;$('round').innerHTML=state.turns.map((t,i)=>`<option value="${i}">Turno ${i+1} · ${dateLabel(t.date)} · ${escapeHtml(state.people.find(p=>p.id===t.personId).name)}</option>`).join('');
- if(state.turns[Number(selected)])$('round').value=selected;renderPayments();
+ if(selected!==''&&state.turns[Number(selected)])$('round').value=selected;else if(state.turns.length)$('round').value='0';renderPayments();
 }
 function renderPayments(){
  if(!state.turns.length){$('receipts').innerHTML='<div class="empty">Realizá el sorteo para registrar los comprobantes de cada turno.</div>';$('paymentSummary').innerHTML='';return}
@@ -69,4 +70,4 @@ function handle(fn){return async e=>{try{await fn(e)}catch(error){notify(error.m
  $('install').onclick=async()=>{if(!installPrompt)return;await installPrompt.prompt();const result=await installPrompt.userChoice;if(result.outcome==='accepted')$('install').hidden=true;installPrompt=null};
  window.addEventListener('appinstalled',()=>{$('install').hidden=true;notify('Ronda instalada en tu celular.')});
  if('serviceWorker' in navigator&&!window.RondaAndroid)navigator.serviceWorker.register('./sw.js').catch(()=>{});
- (async()=>{try{db=await openDB();state=await read()||emptyState();render()}catch(e){render();document.querySelectorAll('button').forEach(b=>b.disabled=true);notify('Este navegador no permite guardar datos. Abrí la beta en un navegador normal con almacenamiento habilitado.',true)}})();
+ (async()=>{try{db=await openDB();state=await read()||emptyState();let migrated=false;for(const key of Object.keys(state.receipts)){if(key.startsWith(':')){const fixedKey='0'+key;if(!state.receipts[fixedKey]){state.receipts[fixedKey]=state.receipts[key];delete state.receipts[key];migrated=true}}}if(migrated)await write(state);render()}catch(e){render();document.querySelectorAll('button').forEach(b=>b.disabled=true);notify('Este navegador no permite guardar datos. Abrí la beta en un navegador normal con almacenamiento habilitado.',true)}})();
