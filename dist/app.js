@@ -20,7 +20,7 @@ function openDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open('
 function read(){return new Promise((resolve,reject)=>{const r=db.transaction('data').objectStore('data').get('chain');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
 function write(next){return new Promise((resolve,reject)=>{const tx=db.transaction('data','readwrite');tx.objectStore('data').put(next,'chain');tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error)})}
 async function commit(next){if(busy)throw Error('Esperá a que termine el guardado.');busy=true;try{await write(next);state=next;render()}finally{busy=false}}
-function switchTab(id){document.querySelectorAll('.panel').forEach(el=>el.hidden=el.id!==id);document.querySelectorAll('[data-tab]').forEach(el=>el.classList.toggle('active',el.dataset.tab===id))}
+function switchTab(id){document.querySelectorAll('.panel').forEach(el=>el.hidden=el.id!==id);document.querySelectorAll('[data-tab]').forEach(el=>{el.classList.toggle('active',el.dataset.tab===id);if(el.dataset.tab===id)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')})}
 document.querySelectorAll('[data-tab]').forEach(el=>el.onclick=()=>switchTab(el.dataset.tab));
 function render(){
  $('chainName').value=state.name;$('amount').value=amountFormat.format(state.amount);$('currency').value=state.currency;$('start').value=state.start;$('frequency').value=state.frequency;
@@ -46,7 +46,12 @@ function id(){return crypto.randomUUID()}
 function dates(count,start,frequency){const first=new Date(start+'T12:00:00Z');return Array.from({length:count},(_,i)=>{const d=new Date(first);if(frequency==='30'){d.setUTCDate(1);d.setUTCMonth(d.getUTCMonth()+i);const last=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0)).getUTCDate();d.setUTCDate(Math.min(first.getUTCDate(),last))}else d.setUTCDate(d.getUTCDate()+Number(frequency)*i);return d.toISOString().slice(0,10)})}
 function randomInt(n){const a=new Uint32Array(1),limit=Math.floor(4294967296/n)*n;do{crypto.getRandomValues(a)}while(a[0]>=limit);return a[0]%n}
 function shuffle(people){const result=[...people];for(let i=result.length-1;i>0;i--){const j=randomInt(i+1);[result[i],result[j]]=[result[j],result[i]]}return result}
-function download(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+function download(blob,name){
+ if(window.RondaAndroid&&typeof window.RondaAndroid.save==='function'){
+  const reader=new FileReader();reader.onload=()=>{try{window.RondaAndroid.save(name,blob.type,String(reader.result).split(',')[1]);notify('Elegí dónde guardar el archivo en tu celular.')}catch(error){notify('No se pudo preparar la descarga.',true)}};reader.onerror=()=>notify('No se pudo leer el archivo.',true);reader.readAsDataURL(blob);return;
+ }
+ const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
 function handle(fn){return async e=>{try{await fn(e)}catch(error){notify(error.message||'No se pudo guardar. Intentá nuevamente.',true)}}}
  $('amount').oninput=()=> $('amount').setCustomValidity('');
  $('amount').onblur=()=>{try{$('amount').value=amountFormat.format(parseAmount($('amount').value));$('amount').setCustomValidity('')}catch(error){$('amount').setCustomValidity(error.message)}};
@@ -63,5 +68,5 @@ function handle(fn){return async e=>{try{await fn(e)}catch(error){notify(error.m
  window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event;$('install').hidden=false});
  $('install').onclick=async()=>{if(!installPrompt)return;await installPrompt.prompt();const result=await installPrompt.userChoice;if(result.outcome==='accepted')$('install').hidden=true;installPrompt=null};
  window.addEventListener('appinstalled',()=>{$('install').hidden=true;notify('Ronda instalada en tu celular.')});
- if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+ if('serviceWorker' in navigator&&!window.RondaAndroid)navigator.serviceWorker.register('./sw.js').catch(()=>{});
  (async()=>{try{db=await openDB();state=await read()||emptyState();render()}catch(e){render();document.querySelectorAll('button').forEach(b=>b.disabled=true);notify('Este navegador no permite guardar datos. Abrí la beta en un navegador normal con almacenamiento habilitado.',true)}})();
