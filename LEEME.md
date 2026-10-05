@@ -54,3 +54,12 @@ Cada cuenta aprobada administra únicamente sus propias cadenas, participantes, 
 
 ## 8. Página pública y buscadores
 La dirección principal muestra la presentación pública de Ronda. El acceso por usuario y contraseña permanece en /admin. La página pública tiene descripción, dirección principal y mapa del sitio para los buscadores. Para verificarla y solicitar su indexación con Google, seguí Guia-Google-Ronda.md. La publicación de la web no garantiza que Google la incluya en sus resultados.
+
+## 9. Medios puestos y cobros compartidos
+Antes de confirmar el orden, podés asignar 0,5; 1; 1,5; 2; 2,5… puestos a cada persona. El monto sugerido corresponde a su participación: con un aporte de $10.000 por puesto, medio puesto paga $5.000 y un puesto y medio paga $15.000 por período. El total sigue siendo modificable.
+
+Dos medios puestos completan un puesto y comparten el mismo turno y fecha de cobro. En «Orden de cobro», elegí quiénes ocupan «Mitad 1» y «Mitad 2». Podés intercambiar las personas entre parejas y usar «Subir» o «Bajar» para colocar el turno donde corresponde al sorteo manual. Para confirmar deben estar completos todos los puestos y cada mitad debe tener su pareja.
+
+En «Pagos», cada persona aparece una sola vez con su participación y aporte total. En el cobro compartido se muestran los dos destinatarios y el importe que recibe cada uno. Si el fondo tiene un centavo que no se puede dividir, lo recibe el primer medio puesto. El calendario muestra la misma fecha a ambas personas y con quién comparten su cobro.
+
+Las cantidades, parejas y orden quedan fijos al confirmar. Las cadenas que ya tenían su orden y sus pagos conservan esos registros.

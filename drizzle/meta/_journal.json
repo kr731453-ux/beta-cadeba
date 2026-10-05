@@ -64,6 +64,13 @@
       "when": 1791233020887,
       "tag": "0008_silent_jetstream",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1791236352126,
+      "tag": "0009_skinny_lucky_pierre",
+      "breakpoints": true
     }
   ]
 }
