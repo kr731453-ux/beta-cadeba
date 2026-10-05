@@ -2,13 +2,18 @@
 
 La administración se realiza desde la web. El sorteo se hace manualmente y su resultado se carga en «Orden de cobro».
 
+## Crear tu usuario y contraseña
+Entrá una vez con «Entrar con mi cuenta actual». Dentro del panel, abrí «Mi acceso», elegí un usuario y una contraseña de al menos 12 caracteres y guardalos. Después podés abrir la misma web en cualquier dispositivo e ingresar con ese usuario y contraseña.
+
+Desde «Mi acceso» podés cambiar tu acceso. Al cambiarlo, se cierran las sesiones anteriores y este dispositivo queda conectado. Si olvidás la contraseña, entrá con tu cuenta actual para volver a configurarla. Elegí y guardá la contraseña directamente en el panel.
+
 ## 1. Crear la cadena
 Abrí el panel de administración e ingresá con tu cuenta administradora. Elegí «Nueva cadena» y completá nombre, aporte por puesto, moneda, cantidad de puestos, modalidad y primera fecha de cobro. Los importes usan formato argentino: 25.000,50.
 
 Podés administrar varias cadenas simultáneamente. Semanal significa cada 7 días; quincenal, cada 14 días. Mensual conserva el día elegido o el último día del mes cuando ese día no existe.
 
 ## 2. Completar los puestos
-Seleccioná una cadena y entrá en «Participantes». Agregá una persona nueva o elegí una existente e indicá la cantidad total de puestos que tendrá en esa cadena. Una persona puede tener varios puestos y participar en varias cadenas.
+Seleccioná una cadena y entrá en «Participantes». Agregá una persona nueva o elegí una existente e indicá la cantidad total de puestos que tendrá en esa cadena. Una persona puede tener varios puestos y participar en varias cadenas. Aparece una sola vez con su nombre, cantidad de puestos y monto total por período. El monto se calcula a partir de sus puestos, pero podés editarlo al agregarla o modificarla antes de confirmar el orden.
 
 Antes de confirmar el orden, podés modificar la cantidad de puestos o quitar a una persona de esa cadena. El panel muestra puestos asignados y disponibles.
 
@@ -18,12 +23,12 @@ Hacé el sorteo por tu cuenta. En «Orden de cobro», seleccioná el participant
 Deben estar asignados todos los puestos. Cada puesto aparece exactamente una vez. La confirmación fija el orden y los puestos de esa cadena. Las cadenas que ya tenían un orden conservan sus datos.
 
 ## 4. Controlar pagos
-En «Pagos», seleccioná el período a revisar. El panel muestra el importe esperado, el total aprobado y cuánto falta aprobar. Podés filtrar los puestos sin registrar, los comprobantes por revisar y los aportes aprobados.
+En «Pagos», seleccioná el período a revisar. El panel muestra el importe esperado, el total aprobado y cuánto falta aprobar. Cada participante aparece una sola vez, con el total de todos sus puestos. «Modificar monto» permite ajustar el total de esa persona únicamente para el período seleccionado, antes de registrar un pago. Otros períodos conservan su monto habitual. Podés filtrar los puestos sin registrar, los comprobantes por revisar y los aportes aprobados.
 
-- Con comprobante: pulsá «Adjuntar» en el puesto correspondiente. Se admiten JPG, PNG, WebP o PDF de hasta 5 MB. Revisá el archivo y pulsá «Aprobar pago». Los comprobantes pendientes se pueden reemplazar.
-- En efectivo: pulsá «Efectivo», indicá la fecha real en que recibiste el dinero y una nota opcional. «Confirmar efectivo recibido» registra y aprueba el aporte completo de ese puesto sin pedir un archivo.
+- Con comprobante: pulsá «Adjuntar comprobante» en el participante correspondiente. Un archivo respalda el total de todos sus puestos en ese período. Se admiten JPG, PNG, WebP o PDF de hasta 5 MB. Revisá el archivo y pulsá «Aprobar pago». Los comprobantes pendientes se pueden reemplazar.
+- En efectivo: pulsá «Efectivo», indicá la fecha real en que recibiste el dinero y una nota opcional. «Confirmar efectivo recibido» registra y aprueba el aporte total de todos sus puestos sin pedir un archivo.
 
-Cada aporte corresponde a un participante, un puesto y un período. Un mismo aporte no se contabiliza dos veces. Un pago aprobado queda confirmado. Las cifras representan aportes completos, no pagos parciales.
+Cada pago corresponde al total de un participante en un período. Los registros anteriores se conservan y se muestran agrupados. Un mismo aporte no se contabiliza dos veces. Un pago aprobado queda confirmado. Las cifras representan aportes completos, no pagos parciales.
 
 ## 5. Registrar el cobro
 Cuando llegue la fecha, estén aprobados todos los aportes y corresponda ese turno, pulsá «Registrar cobro». Confirmá que esa persona recibió el fondo. El calendario marca el cobro y muestra el siguiente turno.

@@ -6,3 +6,8 @@
 @media(max-width:760px){.workspace { grid-template-columns: minmax(0,1fr); }.control .chainlist #chains { max-width:100%; }.control .chainbutton { flex: 0 0 225px; }}
 
 @media(max-width:760px){.paymenttable,.paymenttable tbody{display:block;width:100%;}.paymenttable thead{display:none;}.control .paymenttable tr{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 14px;padding:16px;border:1px solid #dce4e0;border-radius:10px;}.control .paymenttable td{display:block;padding:0;border:0;min-width:0;}.control .paymenttable td:first-child,.control .paymenttable .paymentactions{grid-column:1 / -1;}.paymenttable td[data-label]::before{content:attr(data-label);display:block;font-size:12px;color:#64766c;margin-bottom:7px;}.control .paymenttable td .actions{width:auto;margin-top:5px;}.control .paymenttable td small{max-width:none;}}
+
+.control .editamount{display:block;font-size:12px;min-height:32px;margin-top:8px;padding:6px 10px;}.control .paymentrecord{margin-bottom:10px;}.control .paymentrecord button{font-size:12px;min-height:32px;padding:6px 10px;margin-top:7px;}.control .legacydetail{margin-top:12px;font-size:13px;}.control .legacydetail summary{font-size:13px;font-weight:500;}.control .signin label{text-align:left;}.control .signin form{max-width:400px;}
+
+
+.calendardate{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;}.calendardate:last-child{margin-bottom:0;}.calendardate>span{font-size:13px;}.calendardate strong{font-size:14px!important;}
