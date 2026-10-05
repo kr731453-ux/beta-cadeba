@@ -63,3 +63,16 @@ Dos medios puestos completan un puesto y comparten el mismo turno y fecha de cob
 En «Pagos», cada persona aparece una sola vez con su participación y aporte total. En el cobro compartido se muestran los dos destinatarios y el importe que recibe cada uno. Si el fondo tiene un centavo que no se puede dividir, lo recibe el primer medio puesto. El calendario muestra la misma fecha a ambas personas y con quién comparten su cobro.
 
 Las cantidades, parejas y orden quedan fijos al confirmar. Las cadenas que ya tenían su orden y sus pagos conservan esos registros.
+
+## 10. Agregar participantes después de empezar
+En una cadena en preparación, «Ampliar puestos» aumenta la capacidad y permite cargar nuevas personas desde Participantes.
+
+En una cadena en curso o finalizada, pulsá «Agregar participantes». Cargá las nuevas personas, sus puestos completos o medios y el aporte por período. Podés agregar varias personas antes de guardar. Luego revisá la vista previa: elegí las parejas de medios puestos y usá «Subir» y «Bajar» para ubicarlas entre los cobros pendientes. Confirmá el nuevo calendario cuando esté correcto.
+
+Los cobros realizados conservan su fecha, destinatarios e importe original. Los pagos existentes conservan su período. Las fechas de cada cobro pendiente corresponden a su nuevo lugar en el calendario semanal, quincenal o mensual. Se agregan los períodos necesarios, en los que todos los participantes deben aportar. Los puestos que ya estaban asignados conservan sus registros; esta función agrega nuevas personas.
+
+Los nuevos participantes también deben pagar los períodos anteriores. En Pagos, «Períodos anteriores y adicionales» permite revisarlos. Podés recibir efectivo o adjuntar y aprobar comprobantes de esos aportes atrasados. El nuevo calendario no permite registrar otro cobro hasta regularizar esos pagos anteriores.
+
+Los aportes atrasados aprobados generan un saldo adicional para las personas que ya cobraron ese período. El panel muestra el cobro original separado de ese saldo. Pulsá «Registrar entrega adicional» únicamente después de entregar el dinero, e indicá fecha y nota opcional. Si el cobro original se compartió, el adicional también se reparte entre las dos personas, conservando todos los centavos.
+
+Una cadena finalizada vuelve a estar en curso cuando se amplía. Para una cadena archivada, primero restaurala. La capacidad máxima de la beta es de 100 puestos completos.

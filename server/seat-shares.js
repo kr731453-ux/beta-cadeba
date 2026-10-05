@@ -7,7 +7,7 @@ export function allocateContribution(total,m){
  return parts;
 }
 export async function chainTurns(env,id){
- const turns=(await env.DB.prepare('SELECT t.number,t.user_id,t.slot_number,t.date,t.completed,u.name FROM turns t JOIN users u ON u.id=t.user_id WHERE t.chain_id=? ORDER BY t.number').bind(id).all()).results;
+ const turns=(await env.DB.prepare("SELECT t.number,t.user_id,t.slot_number,t.date,t.completed,COALESCE(t.fund_cents,CASE WHEN t.completed IS NOT NULL THEN (SELECT COALESCE(SUM(COALESCE(r.amount_cents,c.amount_cents)),0) FROM receipts r JOIN chains c ON c.id=r.chain_id WHERE r.chain_id=t.chain_id AND r.turn_number=t.number AND r.state='approved' AND r.is_arrear=0) END) AS fund_cents,u.name FROM turns t JOIN users u ON u.id=t.user_id WHERE t.chain_id=? ORDER BY t.number").bind(id).all()).results;
  const shares=(await env.DB.prepare('SELECT s.turn_number,s.user_id,s.slot_number,s.half_units,u.name FROM turn_shares s JOIN users u ON u.id=s.user_id WHERE s.chain_id=? ORDER BY s.turn_number,s.position').bind(id).all()).results;
  return turns.map(t=>({...t,participants:shares.filter(s=>s.turn_number===t.number).map(({turn_number,...s})=>s).length?shares.filter(s=>s.turn_number===t.number).map(({turn_number,...s})=>s):[{user_id:t.user_id,slot_number:t.slot_number,half_units:2,name:t.name}]}));
 }
