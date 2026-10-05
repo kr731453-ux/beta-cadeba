@@ -14,3 +14,5 @@
 
 .chainviews{display:flex;gap:6px;margin:16px 0}.chainviews button{flex:1;padding:10px 8px}.chainviews .active{background:#28553f;color:#fff;border-color:#28553f}.chainmanagement{margin:16px 0}.historybanner{background:#edf2e6;border:1px solid #d1dec5;border-radius:12px;padding:16px;line-height:1.6;color:#324c3f}.danger{background:#a32e2e;color:white;border-color:#a32e2e}.danger:hover{background:#882323}#manageDialog select{max-width:100%}
 .control button.danger{background:#a32e2e;color:#fff;border-color:#a32e2e}.control button.danger:hover{background:#882323}
+
+.control .ownerrecovery{margin-top:24px;font-size:14px;text-align:left}.ownerrecovery summary{cursor:pointer;color:#52695e}.control button.hasrequests{background:#fff4d7;border-color:#ba9651;color:#4b3d21}.requestaccount{padding:18px 0;border-bottom:1px solid #dce4e0}.requestaccount>strong,.requestaccount>small{display:block;margin-bottom:8px}.requestaccount .actions{margin:12px 0}.requestaccount small{color:#5c7164;overflow-wrap:anywhere}.control #requestsDialog{width:min(620px,calc(100% - 28px))}

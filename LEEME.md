@@ -41,3 +41,13 @@ Pulsá «Gestionar cadenas» arriba del panel, o «Archivar o eliminar» dentro 
 - «Guardar en el historial» conserva los participantes, puestos, fechas, montos, pagos y comprobantes. La cadena queda disponible para consultar y descargar sus archivos, sin modificarla.
 - En «Historial», seleccioná la cadena y pulsá «Restaurar o eliminar». «Restaurar cadena» la devuelve a «Mis cadenas» con todos sus datos y el estado que tenía antes.
 - «Eliminar definitivamente» borra la cadena y sus registros. Para confirmar tenés que escribir su nombre exacto. Esta acción no se puede deshacer. Las personas y sus otras cadenas se conservan.
+
+
+## 7. Ingresar y autorizar nuevas cuentas
+Cada vez que abrís la web, aparece primero el formulario de usuario y contraseña. Si todavía no configuraste tu usuario de propietario, abrí «Acceso del propietario», pulsá «Entrar con mi cuenta actual» y guardá tus credenciales en «Mi acceso».
+
+Las personas nuevas pulsan «Crear usuario y solicitar acceso», completan nombre, usuario y contraseña, y envían la solicitud. Su cuenta queda pendiente y no puede ingresar hasta que la apruebes.
+
+En tu panel, «Solicitudes de acceso» muestra el número de pendientes. Se actualiza cada 30 segundos mientras el panel está visible, y también con «Actualizar». Podés aprobar o rechazar cada solicitud. En «Aprobadas» podés suspender el acceso; se cierran sus sesiones y sus datos se conservan. Podés volver a aprobarla después.
+
+Cada cuenta aprobada administra únicamente sus propias cadenas, participantes, pagos y comprobantes. Las solicitudes aparecen dentro de tu panel.
