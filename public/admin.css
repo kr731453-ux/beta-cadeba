@@ -11,3 +11,6 @@
 
 
 .calendardate{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;}.calendardate:last-child{margin-bottom:0;}.calendardate>span{font-size:13px;}.calendardate strong{font-size:14px!important;}
+
+.chainviews{display:flex;gap:6px;margin:16px 0}.chainviews button{flex:1;padding:10px 8px}.chainviews .active{background:#28553f;color:#fff;border-color:#28553f}.chainmanagement{margin:16px 0}.historybanner{background:#edf2e6;border:1px solid #d1dec5;border-radius:12px;padding:16px;line-height:1.6;color:#324c3f}.danger{background:#a32e2e;color:white;border-color:#a32e2e}.danger:hover{background:#882323}#manageDialog select{max-width:100%}
+.control button.danger{background:#a32e2e;color:#fff;border-color:#a32e2e}.control button.danger:hover{background:#882323}

@@ -34,3 +34,10 @@ Cada pago corresponde al total de un participante en un período. Los registros 
 Cuando llegue la fecha, estén aprobados todos los aportes y corresponda ese turno, pulsá «Registrar cobro». Confirmá que esa persona recibió el fondo. El calendario marca el cobro y muestra el siguiente turno.
 
 Ronda registra la información que carga el administrador. No realiza transferencias ni verifica movimientos bancarios automáticamente.
+
+## 6. Archivar, recuperar o eliminar una cadena
+Pulsá «Gestionar cadenas» arriba del panel, o «Archivar o eliminar» dentro de una cadena. Elegí la cadena y la acción:
+
+- «Guardar en el historial» conserva los participantes, puestos, fechas, montos, pagos y comprobantes. La cadena queda disponible para consultar y descargar sus archivos, sin modificarla.
+- En «Historial», seleccioná la cadena y pulsá «Restaurar o eliminar». «Restaurar cadena» la devuelve a «Mis cadenas» con todos sus datos y el estado que tenía antes.
+- «Eliminar definitivamente» borra la cadena y sus registros. Para confirmar tenés que escribir su nombre exacto. Esta acción no se puede deshacer. Las personas y sus otras cadenas se conservan.
