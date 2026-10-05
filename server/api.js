@@ -54,7 +54,7 @@ export async function handle(request,env){
   else response=await dispatch(request,env,url);
  }catch(error){if(error.message?.includes('CHAIN_ARCHIVED'))Object.assign(error,{status:409,message:'La cadena está en el historial. Restaurala antes de modificarla.'});response=json({error:error.status?error.message:'No se pudo completar la operación. Intentá nuevamente.'},error.status||500);if(!error.status)console.error('Ronda API error:',error.message)}
  const headers=new Headers(response.headers);headers.set('Cache-Control','no-store');headers.set('X-Content-Type-Options','nosniff');headers.set('Referrer-Policy','no-referrer');
- if(origin&&[url.origin,'https://appassets.androidplatform.net'].includes(origin)){headers.set('Access-Control-Allow-Origin',origin);headers.set('Vary','Origin');headers.set('Access-Control-Allow-Methods','GET,POST,OPTIONS');headers.set('Access-Control-Allow-Headers','Authorization,Content-Type');}
+ if(origin&&[url.origin,'https://appassets.androidplatform.net'].includes(origin)){headers.set('Access-Control-Allow-Origin',origin);headers.set('Vary','Origin');headers.set('Access-Control-Allow-Methods','GET,POST,DELETE,OPTIONS');headers.set('Access-Control-Allow-Headers','Authorization,Content-Type');}
  return new Response(response.body,{status:response.status,headers});
 }
 async function dispatch(request,env,url){
@@ -159,3 +159,4 @@ async function dispatch(request,env,url){
  }
  fail(404,'La operación no existe.');
 }
+
