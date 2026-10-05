@@ -51,3 +51,6 @@ Las personas nuevas pulsan «Crear usuario y solicitar acceso», completan nombr
 En tu panel, «Solicitudes de acceso» muestra el número de pendientes. Se actualiza cada 30 segundos mientras el panel está visible, y también con «Actualizar». Podés aprobar o rechazar cada solicitud. En «Aprobadas» podés suspender el acceso; se cierran sus sesiones y sus datos se conservan. Podés volver a aprobarla después.
 
 Cada cuenta aprobada administra únicamente sus propias cadenas, participantes, pagos y comprobantes. Las solicitudes aparecen dentro de tu panel.
+
+## 8. Página pública y buscadores
+La dirección principal muestra la presentación pública de Ronda. El acceso por usuario y contraseña permanece en /admin. La página pública tiene descripción, dirección principal y mapa del sitio para los buscadores. Para verificarla y solicitar su indexación con Google, seguí Guia-Google-Ronda.md. La publicación de la web no garantiza que Google la incluya en sus resultados.

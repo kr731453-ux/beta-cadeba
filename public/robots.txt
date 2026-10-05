@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://cadena-beta-kr731.kr731453.chatgpt.site/sitemap.xml
