@@ -1,22 +1,31 @@
-# Ronda Beta 0.7
+# Ronda · Control de cadenas
 
-La web es el panel del administrador. La app Android es de consulta para participantes.
+La administración se realiza desde la web. El sorteo se hace manualmente y su resultado se carga en «Orden de cobro».
 
-## Administrador
-1. Abrí la web en /admin e ingresá con tu cuenta administradora.
-2. Creá una cadena: nombre, aporte por puesto, moneda, cantidad de puestos, modalidad y primera fecha de cobro.
-3. Abrí la cadena. En «Agregar participante o modificar sus puestos», elegí una persona existente o ingresá su nombre. Indicá su cantidad total de puestos en esa cadena.
-4. Para una persona nueva se genera un código de vinculación. Copialo y entregáselo solamente a esa persona. Para una persona existente, podés generar uno desde «Códigos de vinculación», conservando sus cadenas.
-5. Completá todos los puestos y pulsá «Sortear fechas». Cada puesto recibe su propio turno. El sorteo aleatorio se guarda una sola vez y fija los puestos.
-6. Adjuntá los comprobantes desde «Comprobantes faltantes», por participante, puesto y período. Revisá y aprobá cada pago.
-7. Registrá el cobro cuando llegue la fecha, estén aprobados todos los aportes y corresponda el turno.
+## 1. Crear la cadena
+Abrí el panel de administración e ingresá con tu cuenta administradora. Elegí «Nueva cadena» y completá nombre, aporte por puesto, moneda, cantidad de puestos, modalidad y primera fecha de cobro. Los importes usan formato argentino: 25.000,50.
 
-Podés crear varias cadenas y asignar una persona a varias cadenas o varios puestos. Semanal significa cada 7 días; quincenal, cada 14 días. Mensual conserva el día elegido o el último día del mes si ese día no existe. Los importes usan formato argentino.
+Podés administrar varias cadenas simultáneamente. Semanal significa cada 7 días; quincenal, cada 14 días. Mensual conserva el día elegido o el último día del mes cuando ese día no existe.
 
-## Participante
-1. Instalá Ronda-Participantes-Android.apk en el celular Android.
-2. Abrí la app e ingresá el código entregado por el administrador.
-3. En «Mis cadenas», abrí una cadena para consultar tus puestos, fechas y turnos que faltan para cobrar.
-4. Usá «Actualizar» para consultar la información más reciente.
+## 2. Completar los puestos
+Seleccioná una cadena y entrá en «Participantes». Agregá una persona nueva o elegí una existente e indicá la cantidad total de puestos que tendrá en esa cadena. Una persona puede tener varios puestos y participar en varias cadenas.
 
-El participante solo consulta sus propios puestos y fechas. La administración de participantes, comprobantes y cobros se realiza desde la web. El código es de un solo uso y vence a los 7 días. La vinculación dura 30 días; si necesitás ingresar de nuevo, pedí otro código para tu participante existente. La información se guarda en el almacenamiento compartido de la beta. Ronda registra información; no realiza transferencias.
+Antes de confirmar el orden, podés modificar la cantidad de puestos o quitar a una persona de esa cadena. El panel muestra puestos asignados y disponibles.
+
+## 3. Cargar el resultado del sorteo manual
+Hacé el sorteo por tu cuenta. En «Orden de cobro», seleccioná el participante y puesto que corresponde a cada turno. Al cambiar una selección se intercambian las posiciones, para evitar duplicados. Revisá las fechas de la vista previa y pulsá «Confirmar orden y fechas».
+
+Deben estar asignados todos los puestos. Cada puesto aparece exactamente una vez. La confirmación fija el orden y los puestos de esa cadena. Las cadenas que ya tenían un orden conservan sus datos.
+
+## 4. Controlar pagos
+En «Pagos», seleccioná el período a revisar. El panel muestra el importe esperado, el total aprobado y cuánto falta aprobar. Podés filtrar los puestos sin registrar, los comprobantes por revisar y los aportes aprobados.
+
+- Con comprobante: pulsá «Adjuntar» en el puesto correspondiente. Se admiten JPG, PNG, WebP o PDF de hasta 5 MB. Revisá el archivo y pulsá «Aprobar pago». Los comprobantes pendientes se pueden reemplazar.
+- En efectivo: pulsá «Efectivo», indicá la fecha real en que recibiste el dinero y una nota opcional. «Confirmar efectivo recibido» registra y aprueba el aporte completo de ese puesto sin pedir un archivo.
+
+Cada aporte corresponde a un participante, un puesto y un período. Un mismo aporte no se contabiliza dos veces. Un pago aprobado queda confirmado. Las cifras representan aportes completos, no pagos parciales.
+
+## 5. Registrar el cobro
+Cuando llegue la fecha, estén aprobados todos los aportes y corresponda ese turno, pulsá «Registrar cobro». Confirmá que esa persona recibió el fondo. El calendario marca el cobro y muestra el siguiente turno.
+
+Ronda registra la información que carga el administrador. No realiza transferencias ni verifica movimientos bancarios automáticamente.

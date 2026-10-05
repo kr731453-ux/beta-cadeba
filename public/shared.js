@@ -7,7 +7,7 @@ export const mode=f=>({weekly:'Semanal',fortnightly:'Quincenal · cada 14 días'
 export const status=s=>({draft:'Inscripción abierta',active:'En curso',completed:'Finalizada',pending:'Pendiente',approved:'Aprobado',rejected:'Solicitud rechazada'}[s]||s);
 export const $=id=>document.getElementById(id);
 export function parseCents(value){const text=value.trim();if(!/^(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d{1,2})?$/.test(text))throw Error('Usá punto para miles y coma para decimales. Ejemplo: 10.000,50.');const n=Math.round(Number(text.replace(/\./g,'').replace(',','.'))*100);if(!Number.isSafeInteger(n)||n<100||n>100000000000)throw Error('El aporte debe estar entre 1,00 y 1.000.000.000,00.');return n}
-export function message(text,error=false){$('notice').textContent=text;$('notice').classList.toggle('error',error)}
+export function message(text,error=false){const modal=document.querySelector('dialog[open] .dialognotice');if(modal){modal.textContent=error?text:'';modal.classList.toggle('error',error)}$('notice').textContent=text;$('notice').classList.toggle('error',error)}
 export function safe(fn){return async e=>{try{await fn(e)}catch(error){message(error.message||'No se pudo completar la operación.',true)}}}
 export const participantToken=()=>window.RondaAndroid?.getToken?.()||sessionStorage.getItem('ronda.participantToken')||'';
 export function saveParticipantToken(token){if(window.RondaAndroid?.setToken)window.RondaAndroid.setToken(token);else sessionStorage.setItem('ronda.participantToken',token)}
