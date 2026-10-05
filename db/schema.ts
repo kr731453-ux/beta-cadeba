@@ -1,0 +1,13 @@
+// Intentionally empty by default.
+// Add Drizzle tables here when the site actually needs a database.
+// See examples/d1/db/schema.ts for an opt-in example.
+export {};
+import { sqliteTable, text, integer, primaryKey, uniqueIndex } from 'drizzle-orm/sqlite-core';
+export const users = sqliteTable('users', { id:text('id').primaryKey(), name:text('name').notNull(), created:text('created').notNull() });
+export const admins = sqliteTable('admins', { userId:text('user_id').primaryKey().references(()=>users.id) });
+export const chains = sqliteTable('chains', { id:text('id').primaryKey(), name:text('name').notNull(), amount:integer('amount_cents').notNull(), currency:text('currency').notNull(), frequency:text('frequency').notNull(), start:text('start_date').notNull(), capacity:integer('capacity').notNull(), status:text('status').notNull().default('draft'), drawId:text('draw_id'), created:text('created').notNull() });
+export const members = sqliteTable('members', { chainId:text('chain_id').notNull().references(()=>chains.id), userId:text('user_id').notNull().references(()=>users.id), quantity:integer('quantity').notNull().default(1), state:text('state').notNull().default('pending'), joined:text('joined').notNull() }, t=>[primaryKey({columns:[t.chainId,t.userId]})]);
+export const turns = sqliteTable('turns', { chainId:text('chain_id').notNull().references(()=>chains.id), number:integer('number').notNull(), userId:text('user_id').notNull().references(()=>users.id), slot:integer('slot_number').notNull().default(1), date:text('date').notNull(), completed:text('completed') },t=>[primaryKey({columns:[t.chainId,t.number]}),uniqueIndex('one_turn_per_slot').on(t.chainId,t.userId,t.slot)]);
+export const receipts = sqliteTable('receipts', { id:text('id').primaryKey(), chainId:text('chain_id').notNull().references(()=>chains.id), turn:integer('turn_number').notNull(), userId:text('user_id').notNull().references(()=>users.id), slot:integer('slot_number').notNull().default(1), key:text('r2_key').notNull(), filename:text('filename').notNull(), mime:text('mime').notNull(), state:text('state').notNull().default('pending'), uploaded:text('uploaded').notNull(), reviewed:text('reviewed') },t=>[uniqueIndex('one_receipt_per_turn_slot').on(t.chainId,t.turn,t.userId,t.slot)]);
+export const mobileCodes = sqliteTable('mobile_codes', { code:text('code_hash').primaryKey(), userId:text('user_id').notNull().references(()=>users.id), challenge:text('challenge').notNull(), expires:integer('expires').notNull() });
+export const sessions = sqliteTable('sessions', { hash:text('token_hash').primaryKey(), userId:text('user_id').notNull().references(()=>users.id), expires:integer('expires').notNull() });

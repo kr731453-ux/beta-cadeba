@@ -1,34 +1,28 @@
-# Ronda · Beta para Android
+# Ronda Beta 0.3 · Administrador y participantes
 
-Primera versión web preparada para instalarse en Android desde un navegador compatible cuando esté publicada mediante HTTPS. No es un APK y aún no se ha probado en un Android real.
+La web permite crear y administrar varias cadenas simultáneas. La app Android es para participantes: elegir cadenas, solicitar uno o varios puestos, consultar cada fecha de cobro y enviar comprobantes. Los registros se guardan en una base compartida y los archivos en almacenamiento privado.
 
-## Funciones incluidas
+## Cómo probar
 
-- Crear una cadena con nombre, aporte, moneda y fecha inicial.
-- El organizador elige semanal, quincenal (cada 14 días en esta beta) o mensual.
-- Agregar participantes y sortear una fecha distinta para cada persona.
-- Bloquear configuración y participantes tras el sorteo.
-- Adjuntar comprobantes JPG, PNG, WebP o PDF de hasta 5 MB por persona y turno.
-- Revisar y aprobar manualmente los comprobantes.
-- Exportar un respaldo con los datos y archivos. La importación aún no está incluida.
+1. El administrador ingresa a la web con su cuenta ChatGPT y crea una cadena, eligiendo aporte por puesto, cantidad total de puestos, modalidad y primera fecha.
+2. Los participantes instalan Ronda-Participantes-Android.apk. Al ingresar, se abre el navegador para iniciar sesión con ChatGPT; luego deben tocar Volver a Ronda.
+3. En Elegir cadena solicitan la cantidad de puestos deseada. Se puede participar en varias cadenas.
+4. El administrador aprueba las solicitudes hasta completar todos los puestos y sortea una sola vez. Cada puesto recibe un turno independiente con igual probabilidad, usando un generador criptográfico y Fisher–Yates sin sesgo.
+5. Cada participante sube un comprobante por puesto y período. El administrador selecciona la cadena y el período: Comprobantes faltantes muestra los puestos sin archivo y Comprobantes recibidos permite descargar y aprobar pagos.
+6. Cuando todos los aportes del período están aprobados y llega su fecha, el administrador registra el cobro. Los contadores se actualizan al abrir o actualizar la cadena.
 
-Los datos se guardan solamente en el navegador del dispositivo. No hay cuentas de participantes, sincronización entre celulares, transferencias ni verificación bancaria. Los nombres del botón «Cargar ejemplo» son ficticios. En esta beta todos aportan en cada turno, incluida la persona que cobra.
+Los participantes solo ven movimientos de cadenas donde fueron aprobados. Los archivos solo los descarga su dueño o el administrador. La app no realiza transferencias ni verifica pagos bancarios automáticamente.
 
-En modalidad mensual se conserva el día inicial; si no existe en un mes, se usa el último día de ese mes. El mes siguiente vuelve al día inicial.
+## Modalidades y fechas
 
-## Estado de la entrega
+Semanal: cada 7 días. Quincenal: cada 14 días en esta beta. Mensual: el mismo día de cada mes, ajustado al último día cuando no existe. Importes con formato argentino (10.000,50). Fechas de operación según Argentina.
 
-Código de la beta disponible en `dist/index.html`, `dist/app.js` y `dist/style.css`; configuración de instalación en `dist/manifest.webmanifest` y `dist/sw.js`.
+## Instalación Android
 
-La publicación no pudo completarse porque la revisión automática de permisos bloqueó el paso de sincronización del código. No hay enlace desplegado confirmado. La revisión visual automatizada tampoco pudo ejecutarse por restricciones del entorno.
+Android 8.0 o posterior, WebView actualizado y conexión a Internet. Abrir el APK desde Descargas, permitir la instalación desde ese gestor si Android lo solicita, instalar y abrir. Para actualizar usar el nuevo APK sobre la instalación existente: mantiene la misma firma de prueba. No está publicado en Play Store.
 
-Se verificaron sintaxis, intervalos semanales y quincenales, fin de mes, año bisiesto, ausencia de participantes repetidos en sorteos y manifiesto con íconos.
+## Verificación y límites
 
-## Próximos requisitos por definir con el usuario
+Se probaron permisos, aislamiento entre cadenas, varios puestos por persona, límites de cupos, comprobantes independientes, calendario mensual, autenticación móvil y cierre de sesión. Se revisó la interfaz a tamaño de celular y el panel de faltantes con datos de prueba. La compilación y firma Android se verifican antes de la entrega. El ajuste de la barra de estado debe comprobarse también en un teléfono real, ya que aquí no hay uno conectado.
 
-- Si quincenal debe ser cada 14 días, cada 15 días o dos fechas fijas por mes.
-- Reglas de participación y aportes para quien cobra.
-- Cuentas, invitaciones y permisos del organizador y participantes.
-- Carga de comprobantes desde cada celular y almacenamiento compartido.
-- Vencimientos, recordatorios, atrasos y cancelaciones.
-- Si la siguiente entrega debe ser un APK nativo o continuar como app web instalable.
+El inicio de sesión de esta beta utiliza ChatGPT. Las aprobaciones son manuales. Las solicitudes se aprueban como conjunto de puestos y la configuración del grupo queda cerrada tras el sorteo. Los datos de la antigua beta local no se importan automáticamente.
