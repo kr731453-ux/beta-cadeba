@@ -1,4 +1,4 @@
-# Ronda Beta 0.4 · Administrador y participantes
+# Ronda Beta 0.5 · Administrador y participantes
 
 La web permite crear y administrar varias cadenas simultáneas. La app Android es para participantes: elegir cadenas, solicitar uno o varios puestos, consultar todos los participantes y cada fecha de cobro, y enviar comprobantes. Los registros se guardan en una base compartida y los archivos en almacenamiento privado.
 
@@ -26,4 +26,5 @@ Android 8.0 o posterior, WebView actualizado y conexión a Internet. Abrir el AP
 Se probaron permisos, aislamiento entre cadenas, varios puestos por persona, límites de cupos, comprobantes independientes, calendario mensual, autenticación móvil y cierre de sesión. Se revisó la interfaz a tamaño de celular y el panel de faltantes con datos de prueba. La compilación y firma Android se verifican antes de la entrega. El ajuste de la barra de estado debe comprobarse también en un teléfono real, ya que aquí no hay uno conectado.
 
 El inicio de sesión de esta beta utiliza ChatGPT. Las aprobaciones son manuales. Las solicitudes se aprueban como conjunto de puestos y la configuración del grupo queda cerrada tras el sorteo. Los datos de la antigua beta local no se importan automáticamente.
+
 
