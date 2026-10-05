@@ -12,3 +12,5 @@ export const receipts = sqliteTable('receipts', { id:text('id').primaryKey(), ch
 export const mobileCodes = sqliteTable('mobile_codes', { code:text('code_hash').primaryKey(), userId:text('user_id').notNull().references(()=>users.id), challenge:text('challenge').notNull(), expires:integer('expires').notNull() });
 export const sessions = sqliteTable('sessions', { hash:text('token_hash').primaryKey(), userId:text('user_id').notNull().references(()=>users.id), expires:integer('expires').notNull() });
 export const accessRequests = sqliteTable('access_requests', { userId:text('user_id').primaryKey().references(()=>users.id), state:text('state').notNull().default('pending'), created:text('created').notNull(), reviewed:text('reviewed') });
+export const linkCodes = sqliteTable('link_codes', { code:text('code_hash').primaryKey(), userId:text('user_id').notNull().references(()=>users.id), created:text('created').notNull(), expires:integer('expires').notNull(), consumed:text('consumed') });
+export const loginLimits = sqliteTable('login_limits', { key:text('key').primaryKey(), attempts:integer('attempts').notNull().default(0), expires:integer('expires').notNull() });

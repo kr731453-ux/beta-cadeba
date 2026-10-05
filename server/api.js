@@ -11,9 +11,10 @@ export function shuffle(input){const a=[...input];for(let i=a.length-1;i>0;i--){
 async function body(request){if(!request.headers.get('Content-Type')?.startsWith('application/json'))fail(415,'Usá un cuerpo JSON.');const value=await request.json();if(!value||typeof value!=='object'||Array.isArray(value))fail(400,'Datos inválidos.');return value}
 async function user(request,env){
  const db=env.DB,id=request.headers.get('oai-authenticated-user-id'),email=request.headers.get('oai-authenticated-user-email');
- if(id&&email){let name=email.split('@')[0];try{if(request.headers.get('oai-authenticated-user-full-name-encoding')==='percent-encoded-utf-8')name=decodeURIComponent(request.headers.get('oai-authenticated-user-full-name')||'')||name}catch{}name=name.slice(0,80);await run(db,'INSERT INTO users(id,name,created) VALUES(?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name',id,name,now());if(env.ADMIN_EMAIL&&email.toLowerCase()===env.ADMIN_EMAIL.toLowerCase())await run(db,'INSERT OR IGNORE INTO admins(user_id) VALUES(?)',id);return{id,name,admin:!!await first(db,'SELECT user_id FROM admins WHERE user_id=?',id)}}
  const authorization=request.headers.get('Authorization')||'';
- if(authorization.startsWith('Bearer ')){const token=authorization.slice(7);if(token.length!==43)return null;const row=await first(db,'SELECT u.id,u.name FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires>?',await hash(token),Date.now());if(row)return{...row,admin:!!await first(db,'SELECT user_id FROM admins WHERE user_id=?',row.id)}}
+ if(authorization){if(!authorization.startsWith('Bearer '))return null;const token=authorization.slice(7);if(token.length!==43)return null;const row=await first(db,'SELECT u.id,u.name FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires>?',await hash(token),Date.now());if(row)return{...row,admin:!!await first(db,'SELECT user_id FROM admins WHERE user_id=?',row.id)};return null}
+ if(id&&email){let name=email.split('@')[0];try{if(request.headers.get('oai-authenticated-user-full-name-encoding')==='percent-encoded-utf-8')name=decodeURIComponent(request.headers.get('oai-authenticated-user-full-name')||'')||name}catch{}name=name.slice(0,80);await run(db,'INSERT INTO users(id,name,created) VALUES(?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name',id,name,now());if(env.ADMIN_EMAIL&&email.toLowerCase()===env.ADMIN_EMAIL.toLowerCase())await run(db,'INSERT OR IGNORE INTO admins(user_id) VALUES(?)',id);return{id,name,admin:!!await first(db,'SELECT user_id FROM admins WHERE user_id=?',id)}}
+
  return null;
 }
 async function mustUser(request,env){const u=await user(request,env);if(!u)fail(401,'Iniciá sesión para continuar.');return u}
@@ -32,6 +33,12 @@ async function uploadReceipt(request,env,url,id,ownerId){const db=env.DB;
    const existing=await first(db,'SELECT id,r2_key,state FROM receipts WHERE chain_id=? AND turn_number=? AND user_id=? AND slot_number=?',id,turn,ownerId,slot);if(existing?.state==='approved')fail(409,'El pago ya está aprobado.');const receiptId=existing?.id||crypto.randomUUID(),key=crypto.randomUUID();await env.BUCKET.put(key,bytes,{httpMetadata:{contentType:file.type}});
    try{const result=await run(db,"INSERT INTO receipts(id,chain_id,turn_number,user_id,slot_number,r2_key,filename,mime,state,uploaded) VALUES(?,?,?,?,?,?,?,?,'pending',?) ON CONFLICT(chain_id,turn_number,user_id,slot_number) DO UPDATE SET r2_key=excluded.r2_key,filename=excluded.filename,mime=excluded.mime,uploaded=excluded.uploaded WHERE receipts.state='pending'",receiptId,id,turn,ownerId,slot,key,file.name.slice(0,180),file.type,now());if(!result.meta.changes)fail(409,'El pago ya fue aprobado.')}catch(error){await env.BUCKET.delete(key);throw error}if(existing?.r2_key)await env.BUCKET.delete(existing.r2_key);return json({ok:true});
 }
+async function issueLinkCode(env,owner){const db=env.DB;
+    const alphabet='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',code=Array.from(crypto.getRandomValues(new Uint8Array(20)),b=>alphabet[b&31]).join(''),expires=Date.now()+7*86400000;
+    await db.batch([db.prepare('DELETE FROM link_codes WHERE user_id=? AND consumed IS NULL').bind(owner.id),db.prepare('INSERT INTO link_codes(code_hash,user_id,created,expires) VALUES(?,?,?,?)').bind(await hash(code),owner.id,now(),expires)]);
+    return {user_id:owner.id,name:owner.name,code:code.match(/.{4}/g).join('-'),expires};
+}
+async function participantDetails(env,id,u){const c=await getChain(env,id,u,false),m=await first(env.DB,"SELECT quantity FROM members WHERE chain_id=? AND user_id=? AND state='active'",id,u.id),turns=await all(env.DB,'SELECT number,slot_number,date,completed FROM turns WHERE chain_id=? AND user_id=? ORDER BY number',id,u.id),completed=await first(env.DB,'SELECT COUNT(*) AS n FROM turns WHERE chain_id=? AND completed IS NOT NULL',id);return{chain:{id:c.id,name:c.name,frequency:c.frequency,status:c.status},quantity:m.quantity,myTurns:turns.map(t=>({...t,turnsUntilCollection:t.completed?null:Math.max(0,t.number-1-completed.n)}))}}
 export async function handle(request,env){
  const url=new URL(request.url),origin=request.headers.get('Origin');let response;
  try{
@@ -47,6 +54,19 @@ export async function handle(request,env){
 }
 async function dispatch(request,env,url){
  const db=env.DB,path=url.pathname,method=request.method;
+ if(path==='/api/link/redeem'&&method==='POST'){
+  const key=await hash((request.headers.get('CF-Connecting-IP')||request.headers.get('X-Real-IP')||'unknown')+':'+Math.floor(Date.now()/600000));
+  await run(db,'DELETE FROM login_limits WHERE expires<?',Date.now());
+  const attempts=await first(db,'INSERT INTO login_limits(key,attempts,expires) VALUES(?,1,?) ON CONFLICT(key) DO UPDATE SET attempts=attempts+1 RETURNING attempts',key,Date.now()+600000);if(attempts.attempts>20)fail(429,'Demasiados intentos. Esperá 10 minutos antes de volver a probar.');
+  const data=await body(request),code=String(data.code||'').toUpperCase().replace(/[\s-]/g,'');if(!/^[A-HJ-NP-Z2-9]{20}$/.test(code))fail(401,'El código no es válido, venció o ya fue utilizado.');
+  const codeHash=await hash(code),token=random(),tokenHash=await hash(token),redemption=crypto.randomUUID(),stamp=now();
+  const results=await db.batch([
+   db.prepare('UPDATE link_codes SET consumed=? WHERE code_hash=? AND consumed IS NULL AND expires>?').bind(redemption,codeHash,Date.now()),
+   db.prepare('INSERT INTO sessions(token_hash,user_id,expires) SELECT ?,user_id,? FROM link_codes WHERE code_hash=? AND consumed=?').bind(tokenHash,Date.now()+30*86400000,codeHash,redemption),
+   db.prepare("INSERT INTO access_requests(user_id,state,created,reviewed) SELECT user_id,'approved',?,? FROM link_codes WHERE code_hash=? AND consumed=? ON CONFLICT(user_id) DO UPDATE SET state='approved',reviewed=excluded.reviewed").bind(stamp,stamp,codeHash,redemption)
+  ]);if(!results[0].meta.changes)fail(401,'El código no es válido, venció o ya fue utilizado.');return json({token});
+ }
+
  if(path==='/api/mobile/connect'&&method==='GET'){
   const challenge=url.searchParams.get('challenge')||'';if(!/^[A-Za-z0-9_-]{43}$/.test(challenge))fail(400,'Solicitud de ingreso inválida.');const u=await user(request,env);
   if(!u)return Response.redirect(url.origin+'/signin-with-chatgpt?return_to='+encodeURIComponent(url.pathname+url.search),302);
@@ -61,21 +81,23 @@ async function dispatch(request,env,url){
  if(path==='/api/access'&&['GET','POST'].includes(method))return json(await accessState(env,u,method==='POST'));
  if(path==='/api/mine'||path==='/api/available'||path.startsWith('/api/chains/'))await requireAccess(env,u);
  if(path==='/api/logout'&&method==='POST'){const token=(request.headers.get('Authorization')||'').slice(7);if(token)await run(db,'DELETE FROM sessions WHERE token_hash=?',await hash(token));return json({ok:true})}
- if(path==='/api/mine'&&method==='GET')return json(await all(db,'SELECT c.*,m.quantity,m.state AS membership_state,(SELECT COUNT(*) FROM turns t WHERE t.chain_id=c.id AND t.completed IS NOT NULL) AS completed_count,(SELECT MIN(t.number) FROM turns t WHERE t.chain_id=c.id AND t.user_id=? AND t.completed IS NULL) AS my_turn_number FROM members m JOIN chains c ON c.id=m.chain_id WHERE m.user_id=? ORDER BY c.created DESC',u.id,u.id));
- if(path==='/api/available'&&method==='GET')return json(await all(db,"SELECT c.id,c.name,c.amount_cents,c.currency,c.frequency,c.start_date,c.capacity,(SELECT COALESCE(SUM(m.quantity),0) FROM members m WHERE m.chain_id=c.id AND m.state='active') AS occupied FROM chains c WHERE c.status='draft' AND NOT EXISTS(SELECT 1 FROM members m WHERE m.chain_id=c.id AND m.user_id=?) ORDER BY c.created DESC",u.id));
+ if(path==='/api/mine'&&method==='GET')return json(await all(db,"SELECT c.id,c.name,c.frequency,c.status,m.quantity,(SELECT COUNT(*) FROM turns t WHERE t.chain_id=c.id AND t.completed IS NOT NULL) AS completed_count,(SELECT MIN(t.number) FROM turns t WHERE t.chain_id=c.id AND t.user_id=? AND t.completed IS NULL) AS my_turn_number FROM members m JOIN chains c ON c.id=m.chain_id WHERE m.user_id=? AND m.state='active' ORDER BY c.created DESC",u.id,u.id));
+ if(path==='/api/available')fail(403,'El administrador asigna tus cadenas y puestos desde la web.');
  const participant=path.match(/^\/api\/chains\/([\w-]+)(?:\/(.*))?$/);
- if(participant){const id=participant[1],action=participant[2]||'';
-  if(!action&&method==='GET')return json(await chainDetails(env,id,u,false));
-  if(action==='join'&&method==='POST'){const data=await body(request),quantity=Number(data.quantity??1);const c=await first(db,"SELECT id,capacity FROM chains WHERE id=? AND status='draft'",id);if(!c)fail(409,'La cadena ya no acepta solicitudes.');if(!Number.isInteger(quantity)||quantity<1||quantity>c.capacity)fail(400,'Elegí una cantidad válida de puestos.');const result=await run(db,"INSERT INTO members(chain_id,user_id,quantity,state,joined) VALUES(?,?,?,'pending',?) ON CONFLICT(chain_id,user_id) DO UPDATE SET quantity=excluded.quantity,state='pending',joined=excluded.joined WHERE members.state IN ('pending','rejected')",id,u.id,quantity,now());if(!result.meta.changes)fail(409,'Tu ingreso ya está aprobado.');return json({ok:true,message:'Solicitud enviada. El administrador aprobará tu ingreso.'})}
-  await getChain(env,id,u,false);
-  if(action==='receipts'&&method==='POST'){
-   return uploadReceipt(request,env,url,id,u.id);
-  }
- }
+ if(participant){if(method!=='GET'||participant[2])fail(403,'La app de participantes es de consulta. El administrador gestiona los puestos y comprobantes.');return json(await participantDetails(env,participant[1],u));}
+
  const download=path.match(/^\/api\/(admin\/)?chains\/([\w-]+)\/receipts\/([\w-]+)\/file$/);
  if(download&&method==='GET'){const isAdmin=!!download[1];if(isAdmin&&!u.admin)fail(403,'Acceso reservado al administrador.');await getChain(env,download[2],u,isAdmin);const r=await first(db,'SELECT * FROM receipts WHERE id=? AND chain_id=?',download[3],download[2]);if(!r||(!isAdmin&&r.user_id!==u.id))fail(403,'Solo podés descargar tus propios comprobantes.');const obj=await env.BUCKET.get(r.r2_key);if(!obj)fail(404,'El archivo no está disponible.');return new Response(obj.body,{headers:{'Content-Type':r.mime,'Content-Disposition':`attachment; filename*=UTF-8''${encodeURIComponent(r.filename)}`}})}
  if(path.startsWith('/api/admin/')){
   if(!u.admin)fail(403,'Solo el administrador puede realizar esta acción.');
+  if(path==='/api/admin/link-codes'){
+   if(method==='GET')return json(await all(db,'SELECT u.id,u.name,EXISTS(SELECT 1 FROM link_codes c WHERE c.user_id=u.id AND c.consumed IS NULL AND c.expires>?) AS has_code FROM users u WHERE NOT EXISTS(SELECT 1 FROM admins a WHERE a.user_id=u.id) ORDER BY u.name',Date.now()));
+   if(method==='POST'){
+    const data=await body(request);let owner;if(data.user_id){owner=await first(db,'SELECT id,name FROM users WHERE id=?',String(data.user_id));if(!owner)fail(404,'El participante no existe.');if(await first(db,'SELECT user_id FROM admins WHERE user_id=?',owner.id))fail(400,'Los códigos son para cuentas de participantes.');}else{const name=String(data.name||'').trim();if(!name||name.length>80)fail(400,'Escribí el nombre del participante.');owner={id:'participant_'+crypto.randomUUID(),name};await run(db,'INSERT INTO users(id,name,created) VALUES(?,?,?)',owner.id,name,now());}
+    return json(await issueLinkCode(env,owner),201);
+   }
+  }
+
   if(path==='/api/admin/access'&&method==='GET')return json(await all(db,"SELECT r.user_id,r.state,r.created,u.name FROM access_requests r JOIN users u ON u.id=r.user_id WHERE r.state IN ('pending','rejected') ORDER BY r.created DESC"));
   const permission=path.match(/^\/api\/admin\/access\/([\w-]+)\/(approve|reject)$/);
   if(permission&&method==='POST'){const state=permission[2]==='approve'?'approved':'rejected';const result=await run(db,"UPDATE access_requests SET state=?,reviewed=? WHERE user_id=? AND state IN ('pending','rejected')",state,now(),permission[1]);if(!result.meta.changes)fail(409,'La solicitud ya fue autorizada o no existe.');return json({ok:true})}
@@ -86,6 +108,17 @@ async function dispatch(request,env,url){
   }
   const match=path.match(/^\/api\/admin\/chains\/([\w-]+)(?:\/(.*))?$/);if(match){const id=match[1],action=match[2]||'';const chain=await getChain(env,id,u,true);
    if(!action&&method==='GET')return json(await chainDetails(env,id,u,true));
+   if(action==='participants'&&method==='POST'){
+    if(chain.status!=='draft')fail(409,'Los puestos quedan fijos después del sorteo.');const data=await body(request),quantity=Number(data.quantity);if(!Number.isInteger(quantity)||quantity<1||quantity>chain.capacity)fail(400,'Revisá la cantidad de puestos.');let owner,isNew=false;
+    if(data.user_id){owner=await first(db,'SELECT id,name FROM users WHERE id=?',String(data.user_id));if(!owner||await first(db,'SELECT user_id FROM admins WHERE user_id=?',owner.id))fail(400,'Elegí un participante válido.');}else{const name=String(data.name||'').trim();if(!name||name.length>80)fail(400,'Escribí el nombre del participante.');owner={id:'participant_'+crypto.randomUUID(),name};isNew=true;}
+    const condition="EXISTS(SELECT 1 FROM chains WHERE id=? AND status='draft' AND (SELECT COALESCE(SUM(quantity),0) FROM members WHERE chain_id=? AND state='active' AND user_id<>?)+?<=capacity)",statements=[];
+    if(isNew)statements.push(db.prepare('INSERT INTO users(id,name,created) SELECT ?,?,? WHERE '+condition).bind(owner.id,owner.name,now(),id,id,owner.id,quantity));
+    statements.push(db.prepare("INSERT INTO members(chain_id,user_id,quantity,state,joined) SELECT ?,?,?,'active',? WHERE "+condition+" ON CONFLICT(chain_id,user_id) DO UPDATE SET quantity=excluded.quantity,state='active'").bind(id,owner.id,quantity,now(),id,id,owner.id,quantity));
+    const result=await db.batch(statements);if(!result[result.length-1].meta.changes)fail(409,'No quedan suficientes puestos o el grupo ya fue sorteado.');
+    await run(db,"INSERT INTO access_requests(user_id,state,created,reviewed) VALUES(?,'approved',?,?) ON CONFLICT(user_id) DO UPDATE SET state='approved',reviewed=excluded.reviewed",owner.id,now(),now());
+    return json(isNew?await issueLinkCode(env,owner):{user_id:owner.id,name:owner.name,quantity},201);
+   }
+
    if(action==='receipts'&&method==='POST'){const ownerId=url.searchParams.get('participant')||'';return uploadReceipt(request,env,url,id,ownerId);}
    const member=action.match(/^members\/([\w-]+)\/(approve|reject)$/);
    if(member&&method==='POST'){if(chain.status!=='draft')fail(409,'El grupo está cerrado después del sorteo.');const result=await run(db,"UPDATE members SET state=? WHERE chain_id=? AND user_id=? AND state='pending' AND EXISTS(SELECT 1 FROM chains WHERE id=? AND status='draft') AND (?='rejected' OR (SELECT COALESCE(SUM(quantity),0) FROM members WHERE chain_id=? AND state='active')+members.quantity<=?)",member[2]==='approve'?'active':'rejected',id,member[1],id,member[2]==='approve'?'active':'rejected',id,chain.capacity);if(!result.meta.changes)fail(409,'La solicitud ya fue resuelta o no quedan lugares.');return json({ok:true})}

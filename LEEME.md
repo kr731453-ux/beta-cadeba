@@ -1,31 +1,22 @@
-# Ronda Beta 0.6 · Administrador y participantes
+# Ronda Beta 0.7
 
-La web permite crear y administrar varias cadenas simultáneas. La app Android es para participantes: elegir cadenas, solicitar uno o varios puestos, consultar todos los participantes y cada fecha de cobro, y enviar comprobantes. Los registros se guardan en una base compartida y los archivos en almacenamiento privado.
+La web es el panel del administrador. La app Android es de consulta para participantes.
 
-## Cómo probar
+## Administrador
+1. Abrí la web en /admin e ingresá con tu cuenta administradora.
+2. Creá una cadena: nombre, aporte por puesto, moneda, cantidad de puestos, modalidad y primera fecha de cobro.
+3. Abrí la cadena. En «Agregar participante o modificar sus puestos», elegí una persona existente o ingresá su nombre. Indicá su cantidad total de puestos en esa cadena.
+4. Para una persona nueva se genera un código de vinculación. Copialo y entregáselo solamente a esa persona. Para una persona existente, podés generar uno desde «Códigos de vinculación», conservando sus cadenas.
+5. Completá todos los puestos y pulsá «Sortear fechas». Cada puesto recibe su propio turno. El sorteo aleatorio se guarda una sola vez y fija los puestos.
+6. Adjuntá los comprobantes desde «Comprobantes faltantes», por participante, puesto y período. Revisá y aprobá cada pago.
+7. Registrá el cobro cuando llegue la fecha, estén aprobados todos los aportes y corresponda el turno.
 
-1. El administrador ingresa a la web con su cuenta ChatGPT y crea una cadena, eligiendo aporte por puesto, cantidad total de puestos, modalidad y primera fecha.
-2. Los participantes instalan Ronda-Participantes-Android.apk. Al ingresar, se abre el navegador para iniciar sesión con ChatGPT; luego deben tocar Volver a Ronda.
-3. La primera vez se envía una solicitud de acceso automáticamente. En la web, el administrador entra en Permisos de acceso a la app y autoriza al participante. En el celular, Revisar autorización habilita la navegación. Después, en Elegir cadena solicita la cantidad de puestos deseada. Se puede participar en varias cadenas. Los participantes que ya tenían puestos aprobados conservan el acceso.
-4. El administrador aprueba las solicitudes hasta completar todos los puestos y sortea una sola vez. Cada puesto recibe un turno independiente con igual probabilidad, usando un generador criptográfico y Fisher–Yates sin sesgo.
-5. Cada participante sube un comprobante por puesto y período. El administrador selecciona la cadena y el período: Comprobantes faltantes muestra los puestos sin archivo y Comprobantes recibidos permite descargar y aprobar pagos. El administrador también puede usar Adjuntar comprobante junto al participante y puesto que falta, o reemplazar un archivo pendiente. El archivo queda a nombre del participante y aparece en su app.
-6. Cuando todos los aportes del período están aprobados y llega su fecha, el administrador registra el cobro. Los contadores se actualizan al abrir o actualizar la cadena.
+Podés crear varias cadenas y asignar una persona a varias cadenas o varios puestos. Semanal significa cada 7 días; quincenal, cada 14 días. Mensual conserva el día elegido o el último día del mes si ese día no existe. Los importes usan formato argentino.
 
-Los participantes solo ven movimientos de cadenas donde fueron aprobados. Los archivos solo los descarga su dueño o el administrador. La app no realiza transferencias ni verifica pagos bancarios automáticamente.
+## Participante
+1. Instalá Ronda-Participantes-Android.apk en el celular Android.
+2. Abrí la app e ingresá el código entregado por el administrador.
+3. En «Mis cadenas», abrí una cadena para consultar tus puestos, fechas y turnos que faltan para cobrar.
+4. Usá «Actualizar» para consultar la información más reciente.
 
-## Modalidades y fechas
-
-Semanal: cada 7 días. Quincenal: cada 14 días en esta beta. Mensual: el mismo día de cada mes, ajustado al último día cuando no existe. Importes con formato argentino (10.000,50). Fechas de operación según Argentina.
-
-## Instalación Android
-
-Android 8.0 o posterior, WebView actualizado y conexión a Internet. Abrir el APK desde Descargas, permitir la instalación desde ese gestor si Android lo solicita, instalar y abrir. Para actualizar usar el nuevo APK sobre la instalación existente: mantiene la misma firma de prueba. No está publicado en Play Store.
-
-## Verificación y límites
-
-Se probaron permisos, aislamiento entre cadenas, varios puestos por persona, límites de cupos, comprobantes independientes, calendario mensual, autenticación móvil y cierre de sesión. Se revisó la interfaz a tamaño de celular y el panel de faltantes con datos de prueba. La compilación y firma Android se verifican antes de la entrega. El ajuste de la barra de estado debe comprobarse también en un teléfono real, ya que aquí no hay uno conectado.
-
-El inicio de sesión de esta beta utiliza ChatGPT. Las aprobaciones son manuales. Las solicitudes se aprueban como conjunto de puestos y la configuración del grupo queda cerrada tras el sorteo. Los datos de la antigua beta local no se importan automáticamente.
-
-
-
+El participante solo consulta sus propios puestos y fechas. La administración de participantes, comprobantes y cobros se realiza desde la web. El código es de un solo uso y vence a los 7 días. La vinculación dura 30 días; si necesitás ingresar de nuevo, pedí otro código para tu participante existente. La información se guarda en el almacenamiento compartido de la beta. Ronda registra información; no realiza transferencias.
