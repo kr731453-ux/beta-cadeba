@@ -26,3 +26,5 @@
 .paymentsearch{display:flex;align-items:flex-end;gap:12px;margin-bottom:16px}.paymentsearch label{flex:1}.paymentsearch button{flex-shrink:0;margin-bottom:0}@media(max-width:760px){.paymentsearch{flex-direction:column;align-items:stretch}}
 
 .notedateinput{display:flex;gap:10px;align-items:center;margin-bottom:10px}.notedateinput input{margin-top:0!important}.notedateinput button{flex-shrink:0}.noteshared{margin:20px 0;border:1px solid #dce4e0;border-radius:10px;padding:14px}.control .sharedchoice{display:flex;align-items:center;gap:10px;margin:10px 0}.control .sharedchoice input{width:18px;min-height:18px;margin:0}.notestable td{overflow-wrap:anywhere}@media(max-width:760px){.notestable td[data-label="DNI"]{grid-column:1/-1}.notestable td[data-label="Fechas de cobro"]{grid-column:1/-1}}
+
+.control .notesrowactions button{min-width:44px;min-height:44px}.control button[aria-busy="true"]{cursor:progress}

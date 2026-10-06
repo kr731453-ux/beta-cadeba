@@ -92,3 +92,7 @@ Podés descargar el PDF de todas las personas o únicamente el de «Compartidos�
 ## 12. Buscar participantes en Control de pagos
 En «Pagos», usá «Buscar participante por nombre». Podés escribir parte del nombre o apellido, con o sin tildes y en mayúsculas o minúsculas. La búsqueda se combina con «Sin registrar», «Por revisar o incompletos» y «Aprobados». «Limpiar búsqueda» vuelve a mostrar los participantes del filtro elegido. La búsqueda se conserva al registrar o aprobar un pago en la misma cadena.
 
+
+
+## Actualización de fluidez y seguridad al registrar pagos
+La pantalla bloquea las acciones mientras carga una cadena y descarta respuestas de una selección anterior. Los botones de aprobación se desactivan mientras trabajan. En las filas compartidas de Notas podés cambiar de integrante sin perder lo que escribiste; Guardar cambios de la fila conserva los integrantes editados. Si falla la actualización posterior a un pago confirmado, el aviso indica que el pago quedó registrado y pide Actualizar la pantalla.
