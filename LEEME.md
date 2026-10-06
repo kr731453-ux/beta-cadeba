@@ -76,3 +76,13 @@ Los nuevos participantes también deben pagar los períodos anteriores. En Pagos
 Los aportes atrasados aprobados generan un saldo adicional para las personas que ya cobraron ese período. El panel muestra el cobro original separado de ese saldo. Pulsá «Registrar entrega adicional» únicamente después de entregar el dinero, e indicá fecha y nota opcional. Si el cobro original se compartió, el adicional también se reparte entre las dos personas, conservando todos los centavos.
 
 Una cadena finalizada vuelve a estar en curso cuando se amplía. Para una cadena archivada, primero restaurala. La capacidad máxima de la beta es de 100 puestos completos.
+
+## 11. Notas y lista manual en PDF
+Dentro de cada cadena, abrí «Notas». Podés cargar manualmente nombre, cantidad de puestos (incluidos medios puestos), fecha de cobro y observaciones. La fecha puede quedar pendiente. Si una persona cobra en varias fechas, agregá una fila por fecha.
+
+«Copiar participantes de la cadena» agrega las personas y fechas del calendario actual a la lista. Podés editar, quitar o reordenar las filas con las flechas. «Guardar notas» conserva la lista para volver a consultarla desde otro dispositivo.
+
+«Descargar PDF» guarda los cambios y descarga la lista en PDF, con título, nombre de la cadena, fechas, puestos y observaciones. Las listas largas se distribuyen en varias páginas con encabezados y numeración. Las notas son una lista manual; el calendario de la cadena se gestiona en «Orden de cobro». Las cadenas archivadas permiten consultar y descargar sus notas.
+
+## 12. Buscar participantes en Control de pagos
+En «Pagos», usá «Buscar participante por nombre». Podés escribir parte del nombre o apellido, con o sin tildes y en mayúsculas o minúsculas. La búsqueda se combina con «Sin registrar», «Por revisar o incompletos» y «Aprobados». «Limpiar búsqueda» vuelve a mostrar los participantes del filtro elegido. La búsqueda se conserva al registrar o aprobar un pago en la misma cadena.

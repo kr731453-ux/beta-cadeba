@@ -21,7 +21,7 @@ export async function manageChain(request,env,chain,action){
  // Delete only this chain. Shared people and their other chains are preserved.
  await db.batch([
   db.prepare("INSERT OR IGNORE INTO file_deletions(key,created) SELECT DISTINCT r2_key,? FROM receipts r WHERE chain_id=? AND r2_key<>'' AND NOT EXISTS(SELECT 1 FROM receipts other WHERE other.r2_key=r.r2_key AND other.chain_id<>?)").bind(stamp,id,id),
-  ...['extra_deliveries','dues','receipts','turn_shares','turns','members'].map(table=>db.prepare(`DELETE FROM ${table} WHERE chain_id=?`).bind(id)),
+  ...['chain_notes','extra_deliveries','dues','receipts','turn_shares','turns','members'].map(table=>db.prepare(`DELETE FROM ${table} WHERE chain_id=?`).bind(id)),
   db.prepare('DELETE FROM chains WHERE id=?').bind(id)
  ]);
  await cleanDeletedFiles(env);return {ok:true};

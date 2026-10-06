@@ -1,3 +1,4 @@
+import {chainNotes} from './chain-notes.js';
 import {extendChain,recordExtraDelivery} from './chain-extension.js';
 import {allocateContribution,chainTurns,saveSharedOrder,memberUnits} from './seat-shares.js';
 import {registerAccount,accountRequests} from './account-requests.js';
@@ -121,6 +122,7 @@ async function dispatch(request,env,url){
    if(method==='POST'){const data=await body(request),name=String(data.name||'').trim(),amount=Number(data.amount_cents),capacity=Number(data.capacity),start=String(data.start_date||'');if(!name||name.length>80||!Number.isInteger(amount)||amount<100||amount>100000000000||!Number.isInteger(capacity)||capacity<2||capacity>100||!['ARS','USD','EUR'].includes(data.currency)||!['weekly','fortnightly','monthly'].includes(data.frequency)||!/^\d{4}-\d{2}-\d{2}$/.test(start)||Number.isNaN(new Date(start+'T12:00:00Z').getTime())||new Date(start+'T12:00:00Z').toISOString().slice(0,10)!==start)fail(400,'Revisá el nombre, aporte, puestos, modalidad y fecha.');const id=crypto.randomUUID();await run(db,'INSERT INTO chains(id,name,amount_cents,currency,frequency,start_date,capacity,status,created,owner_id) VALUES(?,?,?,?,?,?,?,\'draft\',?,?)',id,name,amount,data.currency,data.frequency,start,capacity,now(),u.id);return json({id},201)}
   }
   const match=path.match(/^\/api\/admin\/chains\/([\w-]+)(?:\/(.*))?$/);if(match){const id=match[1],action=match[2]||'';const chain=await getChain(env,id,u,true);
+   if(action==='notes')return chainNotes(request,env,chain);
    if(!action&&method==='GET')return json(await chainDetails(env,id,u,true));
    if(['archive','restore'].includes(action)&&method==='POST'||!action&&method==='DELETE')return json(await manageChain(request,env,chain,action));
    if(chain.archived_at&&method!=='GET')fail(409,'La cadena está en el historial. Restaurala antes de modificarla.');
