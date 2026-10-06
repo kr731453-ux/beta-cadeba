@@ -77,12 +77,18 @@ Los aportes atrasados aprobados generan un saldo adicional para las personas que
 
 Una cadena finalizada vuelve a estar en curso cuando se amplía. Para una cadena archivada, primero restaurala. La capacidad máxima de la beta es de 100 puestos completos.
 
-## 11. Notas y lista manual en PDF
-Dentro de cada cadena, abrí «Notas». Podés cargar manualmente nombre, cantidad de puestos (incluidos medios puestos), fecha de cobro y observaciones. La fecha puede quedar pendiente. Si una persona cobra en varias fechas, agregá una fila por fecha.
+## 11. Notas, DNI, cantidades y PDF
+En «Notas», cada persona se identifica por su DNI y aparece una sola vez, con la cantidad total solicitada y todas sus fechas. «Copiar participantes de la cadena» copia una persona por registro, reuniendo sus fechas en una sola fila.
 
-«Copiar participantes de la cadena» agrega las personas y fechas del calendario actual a la lista. Podés editar, quitar o reordenar las filas con las flechas. «Guardar notas» conserva la lista para volver a consultarla desde otro dispositivo.
+La cantidad se puede escribir como «1», «1/2», «2 y medio», «½» u otras cantidades completas o con medio puesto. En este apartado, por indicación del administrador, «1/2» representa uno y medio; «½» representa medio. El PDF conserva la cantidad cargada y representa medio puesto con «½» en lugar de «0,5».
 
-«Descargar PDF» guarda los cambios y descarga la lista en PDF, con título, nombre de la cadena, fechas, puestos y observaciones. Las listas largas se distribuyen en varias páginas con encabezados y numeración. Las notas son una lista manual; el calendario de la cadena se gestiona en «Orden de cobro». Las cadenas archivadas permiten consultar y descargar sus notas.
+Para agregar otra fecha a una persona, editá su fila y pulsá «Agregar otra fecha». Si volvés a ingresar su mismo DNI, se actualiza su única fila y no se multiplica su cantidad. Los registros antiguos repetidos se agrupan, conservando sus fechas y observaciones. Los DNI que todavía no se hayan cargado se muestran como «DNI pendiente».
+
+En «Notas → Compartidos», usá «Crear compartido» para elegir a quienes comparten una fila. Cada integrante conserva su nombre, DNI y cantidad. Por ejemplo, «Iván, Bety y Yojan» ocupa una sola fila; los DNI y cantidades se muestran en ese mismo orden. «Editar fila» permite seleccionar al integrante que querés modificar.
+
+Podés descargar el PDF de todas las personas o únicamente el de «Compartidos». Esta organización pertenece a las notas y no modifica el calendario, los puestos ni los pagos de la cadena.
+
 
 ## 12. Buscar participantes en Control de pagos
 En «Pagos», usá «Buscar participante por nombre». Podés escribir parte del nombre o apellido, con o sin tildes y en mayúsculas o minúsculas. La búsqueda se combina con «Sin registrar», «Por revisar o incompletos» y «Aprobados». «Limpiar búsqueda» vuelve a mostrar los participantes del filtro elegido. La búsqueda se conserva al registrar o aprobar un pago en la misma cadena.
+
