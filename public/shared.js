@@ -1,18 +1,162 @@
-export const API_BASE=window.RondaAndroid?'https://cadena-beta-kr731.kr731453.chatgpt.site':location.origin;
-export const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-export const money=(cents,currency='ARS')=>new Intl.NumberFormat('es-AR',{style:'currency',currency,minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:true}).format(cents/100);
-export const amountFormat=new Intl.NumberFormat('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:true});
-export const dateLabel=s=>new Intl.DateTimeFormat('es-AR',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(s+'T12:00:00Z'));
-export const mode=f=>({weekly:'Semanal',fortnightly:'Quincenal · cada 14 días',monthly:'Mensual'}[f]||f);
-export const status=s=>({draft:'Inscripción abierta',active:'En curso',completed:'Finalizada',pending:'Pendiente',approved:'Aprobado',rejected:'Solicitud rechazada'}[s]||s);
-export const $=id=>document.getElementById(id);
-export function parseCents(value,min=100){const text=value.trim();if(!/^(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d{1,2})?$/.test(text))throw Error('Usá punto para miles y coma para decimales. Ejemplo: 10.000,50.');const n=Math.round(Number(text.replace(/\./g,'').replace(',','.'))*100);if(!Number.isSafeInteger(n)||n<min||n>100000000000)throw Error('El importe debe estar entre '+amountFormat.format(min/100)+' y 1.000.000.000,00.');return n}
-export function message(text,error=false){const modal=document.querySelector('dialog[open] .dialognotice');if(modal){modal.textContent=error?text:'';modal.classList.toggle('error',error)}$('notice').textContent=text;$('notice').classList.toggle('error',error)}
-export function safe(fn){return async e=>{try{await fn(e)}catch(error){message(error.message||'No se pudo completar la operación.',true)}}}
-export const participantToken=()=>window.RondaAndroid?.getToken?.()||sessionStorage.getItem('ronda.participantToken')||'';
-export function saveParticipantToken(token){if(window.RondaAndroid?.setToken)window.RondaAndroid.setToken(token);else sessionStorage.setItem('ronda.participantToken',token)}
-export async function request(path,{method='GET',body,raw=false,signal}={}){const headers={};const participant=!!window.RondaAndroid||document.body.classList.contains('participant'),token=participant?participantToken():'';if(token)headers.Authorization='Bearer '+token;if(body&&!(body instanceof FormData)){headers['Content-Type']='application/json';body=JSON.stringify(body)}let response;try{response=await fetch(API_BASE+path,{method,headers,body,credentials:participant?'omit':'same-origin',cache:'no-store',signal:signal?AbortSignal.any([signal,AbortSignal.timeout(25000)]):AbortSignal.timeout(25000)})}catch(error){if(error.name==='TimeoutError'||error instanceof TypeError)throw Error(method==='GET'?'No se pudo cargar la información. Revisá tu conexión y usá Actualizar para reintentar.':'La conexión se interrumpió. Actualizá la información y verificá el estado de la operación antes de repetirla.');throw error}if(!response.ok){const data=await response.json().catch(()=>({}));throw Object.assign(Error(data.error||'No se pudo conectar con Ronda.'),{status:response.status})}return raw?response:response.status===204?null:response.json()}
-export function login(returnTo){if(window.RondaAndroid?.signIn){window.RondaAndroid.signIn();return}location.assign('/signin-with-chatgpt?return_to='+encodeURIComponent(returnTo))}
-export async function logout(returnTo){const participant=!!window.RondaAndroid||document.body.classList.contains('participant');if(participant){try{await request('/api/logout',{method:'POST',body:{}})}finally{window.RondaAndroid?.clearSession?.();sessionStorage.removeItem('ronda.participantToken');location.reload()}}else{await request('/api/logout',{method:'POST',body:{}});location.assign('/signout-with-chatgpt?return_to='+encodeURIComponent(returnTo))}}
+export const API_BASE = window.RondaAndroid
+  ? 'https://cadena-beta-kr731.kr731453.chatgpt.site'
+  : location.origin;
+export const esc = (s) =>
+  String(s ?? '').replace(
+    /[&<>"']/g,
+    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
+  );
+// Reuse formatters across payment rows instead of rebuilding them for every amount.
+const currencyFormats = new Map();
+export function money(cents, currency = 'ARS') {
+  if (!currencyFormats.has(currency)) {
+    currencyFormats.set(
+      currency,
+      new Intl.NumberFormat('es-AR', {
+        style: 'currency',
+        currency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+        useGrouping: true,
+      }),
+    );
+  }
+  return currencyFormats.get(currency).format(cents / 100);
+}
+export const amountFormat = new Intl.NumberFormat('es-AR', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+  useGrouping: true,
+});
+const dateFormat = new Intl.DateTimeFormat('es-AR', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+export const dateLabel = (s) => dateFormat.format(new Date(s + 'T12:00:00Z'));
+export const mode = (f) =>
+  ({ weekly: 'Semanal', fortnightly: 'Quincenal · cada 14 días', monthly: 'Mensual' })[f] || f;
+export const status = (s) =>
+  ({
+    draft: 'Inscripción abierta',
+    active: 'En curso',
+    completed: 'Finalizada',
+    pending: 'Pendiente',
+    approved: 'Aprobado',
+    rejected: 'Solicitud rechazada',
+  })[s] || s;
+export const $ = (id) => document.getElementById(id);
+export function parseCents(value, min = 100) {
+  const text = value.trim();
+  if (!/^(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d{1,2})?$/.test(text))
+    throw Error('Usá punto para miles y coma para decimales. Ejemplo: 10.000,50.');
+  const n = Math.round(Number(text.replace(/\./g, '').replace(',', '.')) * 100);
+  if (!Number.isSafeInteger(n) || n < min || n > 100000000000)
+    throw Error(
+      'El importe debe estar entre ' + amountFormat.format(min / 100) + ' y 1.000.000.000,00.',
+    );
+  return n;
+}
+export function message(text, error = false) {
+  const modal = document.querySelector('dialog[open] .dialognotice');
+  if (modal) {
+    modal.textContent = error ? text : '';
+    modal.classList.toggle('error', error);
+  }
+  $('notice').textContent = text;
+  $('notice').classList.toggle('error', error);
+}
+export function safe(fn) {
+  return async (e) => {
+    try {
+      await fn(e);
+    } catch (error) {
+      message(error.message || 'No se pudo completar la operación.', true);
+    }
+  };
+}
+export const participantToken = () =>
+  window.RondaAndroid?.getToken?.() || sessionStorage.getItem('ronda.participantToken') || '';
+export function saveParticipantToken(token) {
+  if (window.RondaAndroid?.setToken) window.RondaAndroid.setToken(token);
+  else sessionStorage.setItem('ronda.participantToken', token);
+}
+export async function request(path, { method = 'GET', body, raw = false, signal } = {}) {
+  const headers = {};
+  const participant = !!window.RondaAndroid || document.body.classList.contains('participant'),
+    token = participant ? participantToken() : '';
+  if (token) headers.Authorization = 'Bearer ' + token;
+  if (body && !(body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+    body = JSON.stringify(body);
+  }
+  let response;
+  try {
+    response = await fetch(API_BASE + path, {
+      method,
+      headers,
+      body,
+      credentials: participant ? 'omit' : 'same-origin',
+      cache: 'no-store',
+      signal: signal
+        ? AbortSignal.any([signal, AbortSignal.timeout(25000)])
+        : AbortSignal.timeout(25000),
+    });
+  } catch (error) {
+    if (error.name === 'TimeoutError' || error instanceof TypeError)
+      throw Error(
+        method === 'GET'
+          ? 'No se pudo cargar la información. Revisá tu conexión y usá Actualizar para reintentar.'
+          : 'La conexión se interrumpió. Actualizá la información y verificá el estado de la operación antes de repetirla.',
+      );
+    throw error;
+  }
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw Object.assign(Error(data.error || 'No se pudo conectar con Ronda.'), {
+      status: response.status,
+    });
+  }
+  return raw ? response : response.status === 204 ? null : response.json();
+}
+export function login(returnTo) {
+  if (window.RondaAndroid?.signIn) {
+    window.RondaAndroid.signIn();
+    return;
+  }
+  location.assign('/signin-with-chatgpt?return_to=' + encodeURIComponent(returnTo));
+}
+export async function logout(returnTo) {
+  const participant = !!window.RondaAndroid || document.body.classList.contains('participant');
+  if (participant) {
+    try {
+      await request('/api/logout', { method: 'POST', body: {} });
+    } finally {
+      window.RondaAndroid?.clearSession?.();
+      sessionStorage.removeItem('ronda.participantToken');
+      location.reload();
+    }
+  } else {
+    await request('/api/logout', { method: 'POST', body: {} });
+    location.assign('/signout-with-chatgpt?return_to=' + encodeURIComponent(returnTo));
+  }
+}
 
-export async function download(path,filename){const response=await request(path,{raw:true}),blob=await response.blob();if(window.RondaAndroid?.save){const reader=new FileReader();reader.onload=()=>window.RondaAndroid.save(filename,blob.type,String(reader.result).split(',')[1]);reader.readAsDataURL(blob);return}const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+export async function download(path, filename) {
+  const response = await request(path, { raw: true }),
+    blob = await response.blob();
+  if (window.RondaAndroid?.save) {
+    const reader = new FileReader();
+    reader.onload = () =>
+      window.RondaAndroid.save(filename, blob.type, String(reader.result).split(',')[1]);
+    reader.readAsDataURL(blob);
+    return;
+  }
+  const url = URL.createObjectURL(blob),
+    a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}

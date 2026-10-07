@@ -1,1 +1,53 @@
-<!doctype html><html lang="es"><head><meta name="robots" content="noindex, follow"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#28553f"><title>Ronda · Mis cadenas</title><link rel="stylesheet" href="ronda.css"></head><body class="participant"><header><a class="brand" href="#">◉ ronda</a><span class="badge">PARTICIPANTES</span><div class="account" id="account"></div></header><main class="shell"><div id="notice" class="notice" role="status" aria-live="polite"></div><section id="login" class="signin" hidden><p class="eyebrow">TU CADENA, SIEMPRE A MANO</p><h1>Vinculá tu app</h1><p>Ingresá el código que te entregó el administrador. Así podremos mostrarte tus cadenas y fechas.</p><form id="codeLogin"><label>Código de vinculación<input id="linkCode" class="codeinput" required maxlength="30" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false" placeholder="ABCD-EFGH-JKLM-NPQR-STUV"></label><button id="signin" class="primary">Vincularme</button></form><p class="hint">El código se usa una sola vez y vence a los 7 días. Si necesitás volver a vincular el celular, pedí uno nuevo al administrador.</p></section><section id="access" class="signin" hidden><p class="eyebrow">PERMISO DEL ADMINISTRADOR</p><h1 id="accessTitle">Solicitud enviada</h1><p id="accessText">El administrador habilita tu acceso y asigna tus puestos.</p><button id="checkAccess" class="primary">Revisar autorización</button><p class="hint">Pedile tu código de vinculación al administrador.</p></section><section id="home" hidden><p class="eyebrow">CADENAS DONDE PARTICIPÁS</p><h1>Mis cadenas</h1><p class="muted">Consultá los puestos que te asignó el administrador y tus fechas de cobro.</p><button id="refresh">Actualizar</button><div id="mychains" class="grid" style="margin-top:20px"></div></section><section id="detail" hidden></section><footer>Ronda · Tus puestos y fechas se actualizan con la información del administrador.</footer></main><script type="module" src="participant.js"></script></body></html>
+<!doctype html>
+<html lang="es"
+  ><head
+    ><meta name="robots" content="noindex, follow" /><meta charset="UTF-8" /><meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover" /><meta
+      name="theme-color"
+      content="#28553f" /><title>Ronda · Mis cadenas</title
+    ><link rel="stylesheet" href="ronda.css" /></head
+  ><body class="participant"
+    ><header
+      ><a class="brand" href="#">◉ ronda</a><span class="badge">PARTICIPANTES</span
+      ><div class="account" id="account"></div></header
+    ><main class="shell"
+      ><div id="notice" class="notice" role="status" aria-live="polite"></div
+      ><section id="login" class="signin" hidden
+        ><p class="eyebrow">TU CADENA, SIEMPRE A MANO</p><h1>Vinculá tu app</h1
+        ><p
+          >Ingresá el código que te entregó el administrador. Así podremos mostrarte tus cadenas y
+          fechas.</p
+        ><form id="codeLogin"
+          ><label
+            >Código de vinculación<input
+              id="linkCode"
+              class="codeinput"
+              required
+              maxlength="30"
+              autocomplete="one-time-code"
+              autocapitalize="characters"
+              spellcheck="false"
+              placeholder="ABCD-EFGH-JKLM-NPQR-STUV" /></label
+          ><button id="signin" class="primary">Vincularme</button></form
+        ><p class="hint"
+          >El código se usa una sola vez y vence a los 7 días. Si necesitás volver a vincular el
+          celular, pedí uno nuevo al administrador.</p
+        ></section
+      ><section id="access" class="signin" hidden
+        ><p class="eyebrow">PERMISO DEL ADMINISTRADOR</p><h1 id="accessTitle">Solicitud enviada</h1
+        ><p id="accessText">El administrador habilita tu acceso y asigna tus puestos.</p
+        ><button id="checkAccess" class="primary">Revisar autorización</button
+        ><p class="hint">Pedile tu código de vinculación al administrador.</p></section
+      ><section id="home" hidden
+        ><p class="eyebrow">CADENAS DONDE PARTICIPÁS</p><h1>Mis cadenas</h1
+        ><p class="muted"
+          >Consultá los puestos que te asignó el administrador y tus fechas de cobro.</p
+        ><button id="refresh">Actualizar</button
+        ><div id="mychains" class="grid" style="margin-top:20px"></div></section
+      ><section id="detail" hidden></section
+      ><footer
+        >Ronda · Tus puestos y fechas se actualizan con la información del administrador.</footer
+      ></main
+    ><script type="module" src="participant.js"></script></body
+></html>

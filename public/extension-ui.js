@@ -1,30 +1,260 @@
-import {$,esc,money,dateLabel,message,safe,request,parseCents,amountFormat} from './shared.js';
-let context=null,staged=[],order=[];
-const quantity=n=>new Intl.NumberFormat('es-AR',{maximumFractionDigits:1}).format(n);
-const units=m=>m.half_units??m.quantity*2;
-const partLabel=p=>p.half_units===1?'Medio puesto':'Puesto '+p.slot_number;
-function calendar(c,count){const first=new Date(c.start_date+'T12:00:00Z');return Array.from({length:count},(_,i)=>{const d=new Date(first);if(c.frequency==='monthly'){d.setUTCDate(1);d.setUTCMonth(d.getUTCMonth()+i);d.setUTCDate(Math.min(first.getUTCDate(),new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0)).getUTCDate()))}else d.setUTCDate(d.getUTCDate()+i*(c.frequency==='weekly'?7:14));return d.toISOString().slice(0,10)})}
-function pieces(){return context.detail.turns.filter(t=>!t.completed).flatMap(t=>(t.participants||[{...t,half_units:2}]).map(p=>({...p,key:p.user_id+':'+p.slot_number}))).concat(staged.flatMap(m=>Array.from({length:m.quantity},(_,i)=>({...m,user_id:m.key,slot_number:i+1,key:m.key+':'+(i+1),half_units:i===m.quantity-1&&units(m)%2?1:2}))))}
-function resetOrder(){order=context.detail.turns.filter(t=>!t.completed).map(t=>(t.participants||[t]).map(p=>p.user_id+':'+p.slot_number));const add=pieces().filter(p=>p.user_id.startsWith('new_')),halves=add.filter(p=>p.half_units===1);order.push(...add.filter(p=>p.half_units===2).map(p=>[p.key]));for(let i=0;i<halves.length;i+=2)order.push(halves.slice(i,i+2).map(p=>p.key))}
-function render(){
- const c=context.detail.chain,all=pieces(),count=context.detail.turns.filter(t=>t.completed).length,newCapacity=c.capacity+staged.reduce((n,m)=>n+units(m)/2,0),dates=calendar(c,Math.ceil(newCapacity)),ready=staged.length&&Number.isInteger(newCapacity)&&newCapacity<=100;
- $('extensionStaged').innerHTML=staged.length?staged.map(m=>`<div class="stagedperson"><div><strong>${esc(m.name)}</strong><small>${quantity(units(m)/2)} puestos · ${money(m.contribution_cents,c.currency)} por período</small></div><button type="button" data-stage-remove="${m.key}">Quitar</button></div>`).join(''):'<p class="hint">Los participantes nuevos aparecerán acá antes de guardar.</p>';
- $('extensionSummary').textContent=`${c.capacity} → ${quantity(newCapacity)} puestos. ${count} cobros realizados se conservan. Los nuevos participantes deberán pagar todos los períodos anteriores. Todos los participantes aportarán también en los períodos que se agreguen.`;
- $('extensionPreview').innerHTML=`<h3>2. Revisá los cobros pendientes</h3><p class="hint">Los cobros realizados quedan fijos. Elegí las parejas de medios puestos y usá Subir o Bajar para ordenar los turnos. Los pagos ya cargados conservan su período.</p>${!ready?'<p class="missingpanel">Agregá participantes y completá las parejas de medios puestos. Máximo: 100 puestos.</p>':''}<div class="orderlist">${order.map((group,i)=>`<div class="orderrow"><span class="turnindex">${count+i+1}</span><div class="orderchoices">${group.map((key,j)=>{const own=all.find(p=>p.key===key);return `<label>${own.half_units===1?'Mitad '+(j+1):'Puesto completo'}<select data-extend-order="${i}" data-part="${j}">${all.filter(p=>p.half_units===own.half_units).map(p=>`<option value="${esc(p.key)}" ${p.key===key?'selected':''}>${esc(p.name)} · ${partLabel(p)}</option>`).join('')}</select></label>`}).join('')}${group.length===1&&all.find(p=>p.key===group[0]).half_units===1?'<small>Falta la otra mitad.</small>':''}</div><div class="orderdate"><small>Fecha de cobro</small><strong>${dateLabel(dates[count+i])}</strong><div class="actions"><button type="button" data-extend-move="${i}" data-direction="-1" ${i===0?'disabled':''}>Subir</button><button type="button" data-extend-move="${i}" data-direction="1" ${i===order.length-1?'disabled':''}>Bajar</button></div></div></div>`).join('')}</div>`;
- $('saveExtension').disabled=!ready||order.some(g=>g.reduce((n,k)=>n+all.find(p=>p.key===k).half_units,0)!==2);
+import {
+  $,
+  esc,
+  money,
+  dateLabel,
+  message,
+  safe,
+  request,
+  parseCents,
+  amountFormat,
+} from './shared.js';
+let context = null,
+  staged = [],
+  order = [];
+const quantity = (n) => new Intl.NumberFormat('es-AR', { maximumFractionDigits: 1 }).format(n);
+const units = (m) => m.half_units ?? m.quantity * 2;
+const partLabel = (p) => (p.half_units === 1 ? 'Medio puesto' : 'Puesto ' + p.slot_number);
+function calendar(c, count) {
+  const first = new Date(c.start_date + 'T12:00:00Z');
+  return Array.from({ length: count }, (_, i) => {
+    const d = new Date(first);
+    if (c.frequency === 'monthly') {
+      d.setUTCDate(1);
+      d.setUTCMonth(d.getUTCMonth() + i);
+      d.setUTCDate(
+        Math.min(
+          first.getUTCDate(),
+          new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate(),
+        ),
+      );
+    } else d.setUTCDate(d.getUTCDate() + i * (c.frequency === 'weekly' ? 7 : 14));
+    return d.toISOString().slice(0, 10);
+  });
 }
-export async function openExtension(id,people,onSaved){
- const detail=await request('/api/admin/chains/'+id);context={id,detail,onSaved};staged=[];
- if(detail.chain.status==='draft'){$('newCapacity').min=detail.chain.capacity+1;$('newCapacity').value=Math.min(100,detail.chain.capacity+1);$('capacityDialog').showModal();return}
- $('extendPerson').innerHTML='<option value="">Nueva persona</option>'+people.filter(p=>!detail.members.some(m=>m.user_id===p.id)).map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');$('extensionAdd').reset();$('extendNameLabel').hidden=false;$('extendName').required=true;$('extendAmount').value=amountFormat.format(detail.chain.amount_cents/100);resetOrder();render();$('extensionDialog').showModal();
+function pieces() {
+  return context.detail.turns
+    .filter((t) => !t.completed)
+    .flatMap((t) =>
+      (t.participants || [{ ...t, half_units: 2 }]).map((p) => ({
+        ...p,
+        key: p.user_id + ':' + p.slot_number,
+      })),
+    )
+    .concat(
+      staged.flatMap((m) =>
+        Array.from({ length: m.quantity }, (_, i) => ({
+          ...m,
+          user_id: m.key,
+          slot_number: i + 1,
+          key: m.key + ':' + (i + 1),
+          half_units: i === m.quantity - 1 && units(m) % 2 ? 1 : 2,
+        })),
+      ),
+    );
 }
-export function initExtension(){
- $('closeExtension').onclick=()=>$('extensionDialog').close();$('closeCapacity').onclick=()=>$('capacityDialog').close();
- $('extendPerson').onchange=()=>{$('extendNameLabel').hidden=!!$('extendPerson').value;$('extendName').required=!$('extendPerson').value};$('extendQuantity').oninput=()=>{$('extendAmount').value=amountFormat.format(Math.round(Number($('extendQuantity').value)*context.detail.chain.amount_cents)/100)};
- $('extensionAdd').onsubmit=safe(async e=>{e.preventDefault();const id=$('extendPerson').value,q=Number($('extendQuantity').value);if(!Number.isInteger(q*2)||q<.5||q>100)throw Error('Usá puestos completos o medios.');if(id&&staged.some(m=>m.existing_id===id))throw Error('Esa persona ya está en la lista de nuevos participantes.');const name=id?$('extendPerson').selectedOptions[0].textContent:$('extendName').value.trim();if(!name)throw Error('Escribí el nombre.');staged.push({key:'new_'+crypto.randomUUID(),existing_id:id,name,quantity:Math.ceil(q),half_units:q*2,contribution_cents:parseCents($('extendAmount').value,1)});$('extensionAdd').reset();$('extendNameLabel').hidden=false;$('extendName').required=true;$('extendAmount').value=amountFormat.format(context.detail.chain.amount_cents/100);resetOrder();render()});
- $('extensionStaged').onclick=e=>{const b=e.target.closest('[data-stage-remove]');if(b){staged=staged.filter(m=>m.key!==b.dataset.stageRemove);resetOrder();render()}};
- $('extensionPreview').onchange=e=>{const input=e.target.closest('[data-extend-order]');if(!input)return;const i=Number(input.dataset.extendOrder),part=Number(input.dataset.part);let x=-1,y=-1;order.forEach((g,j)=>g.forEach((k,p)=>{if(k===input.value){x=j;y=p}}));if(x>=0){[order[i][part],order[x][y]]=[order[x][y],order[i][part]];render()}};
- $('extensionPreview').onclick=e=>{const b=e.target.closest('[data-extend-move]');if(b){const i=Number(b.dataset.extendMove),j=i+Number(b.dataset.direction);if(j>=0&&j<order.length){[order[i],order[j]]=[order[j],order[i]];render()}}};
- $('saveExtension').onclick=safe(async()=>{if(!confirm('¿Agregar estos participantes y confirmar el nuevo calendario pendiente? Los cobros realizados y los pagos existentes se conservarán. Los nuevos participantes deberán ponerse al día.'))return;$('saveExtension').disabled=true;try{const all=pieces();await request('/api/admin/chains/'+context.id+'/extend',{method:'POST',body:{revision:context.detail.chain.revision,additions:staged.map(m=>({key:m.key,...(m.existing_id?{user_id:m.existing_id}:{name:m.name}),quantity:units(m)/2,amount_cents:m.contribution_cents})),order:order.map(g=>({participants:g.map(key=>{const p=all.find(p=>p.key===key);return{user_id:p.user_id,slot_number:p.slot_number}})}))}});$('extensionDialog').close();await context.onSaved();message('Participantes agregados y calendario pendiente actualizado. Revisá los aportes anteriores.')}finally{$('saveExtension').disabled=false}});
- $('capacityForm').onsubmit=safe(async e=>{e.preventDefault();$('saveCapacity').disabled=true;try{await request('/api/admin/chains/'+context.id+'/capacity',{method:'POST',body:{capacity:Number($('newCapacity').value)}});$('capacityDialog').close();await context.onSaved();message('Capacidad ampliada. Ya podés agregar participantes.')}finally{$('saveCapacity').disabled=false}});
+function resetOrder() {
+  order = context.detail.turns
+    .filter((t) => !t.completed)
+    .map((t) => (t.participants || [t]).map((p) => p.user_id + ':' + p.slot_number));
+  const add = pieces().filter((p) => p.user_id.startsWith('new_')),
+    halves = add.filter((p) => p.half_units === 1);
+  order.push(...add.filter((p) => p.half_units === 2).map((p) => [p.key]));
+  for (let i = 0; i < halves.length; i += 2) order.push(halves.slice(i, i + 2).map((p) => p.key));
+}
+function render() {
+  const c = context.detail.chain,
+    all = pieces(),
+    count = context.detail.turns.filter((t) => t.completed).length,
+    newCapacity = c.capacity + staged.reduce((n, m) => n + units(m) / 2, 0),
+    dates = calendar(c, Math.ceil(newCapacity)),
+    ready = staged.length && Number.isInteger(newCapacity) && newCapacity <= 100;
+  $('extensionStaged').innerHTML = staged.length
+    ? staged
+        .map(
+          (m) =>
+            `<div class="stagedperson"><div><strong>${esc(m.name)}</strong><small>${quantity(units(m) / 2)} puestos · ${money(m.contribution_cents, c.currency)} por período</small></div><button type="button" data-stage-remove="${m.key}">Quitar</button></div>`,
+        )
+        .join('')
+    : '<p class="hint">Los participantes nuevos aparecerán acá antes de guardar.</p>';
+  $('extensionSummary').textContent =
+    `${c.capacity} → ${quantity(newCapacity)} puestos. ${count} cobros realizados se conservan. Los nuevos participantes deberán pagar todos los períodos anteriores. Todos los participantes aportarán también en los períodos que se agreguen.`;
+  $('extensionPreview').innerHTML =
+    `<h3>2. Revisá los cobros pendientes</h3><p class="hint">Los cobros realizados quedan fijos. Elegí las parejas de medios puestos y usá Subir o Bajar para ordenar los turnos. Los pagos ya cargados conservan su período.</p>${!ready ? '<p class="missingpanel">Agregá participantes y completá las parejas de medios puestos. Máximo: 100 puestos.</p>' : ''}<div class="orderlist">${order
+      .map(
+        (group, i) =>
+          `<div class="orderrow"><span class="turnindex">${count + i + 1}</span><div class="orderchoices">${group
+            .map((key, j) => {
+              const own = all.find((p) => p.key === key);
+              return `<label>${own.half_units === 1 ? 'Mitad ' + (j + 1) : 'Puesto completo'}<select data-extend-order="${i}" data-part="${j}">${all
+                .filter((p) => p.half_units === own.half_units)
+                .map(
+                  (p) =>
+                    `<option value="${esc(p.key)}" ${p.key === key ? 'selected' : ''}>${esc(p.name)} · ${partLabel(p)}</option>`,
+                )
+                .join('')}</select></label>`;
+            })
+            .join(
+              '',
+            )}${group.length === 1 && all.find((p) => p.key === group[0]).half_units === 1 ? '<small>Falta la otra mitad.</small>' : ''}</div><div class="orderdate"><small>Fecha de cobro</small><strong>${dateLabel(dates[count + i])}</strong><div class="actions"><button type="button" data-extend-move="${i}" data-direction="-1" ${i === 0 ? 'disabled' : ''}>Subir</button><button type="button" data-extend-move="${i}" data-direction="1" ${i === order.length - 1 ? 'disabled' : ''}>Bajar</button></div></div></div>`,
+      )
+      .join('')}</div>`;
+  $('saveExtension').disabled =
+    !ready ||
+    order.some((g) => g.reduce((n, k) => n + all.find((p) => p.key === k).half_units, 0) !== 2);
+}
+export async function openExtension(id, people, onSaved) {
+  const detail = await request('/api/admin/chains/' + id);
+  context = { id, detail, onSaved };
+  staged = [];
+  if (detail.chain.status === 'draft') {
+    $('newCapacity').min = detail.chain.capacity + 1;
+    $('newCapacity').value = Math.min(100, detail.chain.capacity + 1);
+    $('capacityDialog').showModal();
+    return;
+  }
+  $('extendPerson').innerHTML =
+    '<option value="">Nueva persona</option>' +
+    people
+      .filter((p) => !detail.members.some((m) => m.user_id === p.id))
+      .map((p) => `<option value="${esc(p.id)}">${esc(p.name)}</option>`)
+      .join('');
+  $('extensionAdd').reset();
+  $('extendNameLabel').hidden = false;
+  $('extendName').required = true;
+  $('extendAmount').value = amountFormat.format(detail.chain.amount_cents / 100);
+  resetOrder();
+  render();
+  $('extensionDialog').showModal();
+}
+export function initExtension() {
+  $('closeExtension').onclick = () => $('extensionDialog').close();
+  $('closeCapacity').onclick = () => $('capacityDialog').close();
+  $('extendPerson').onchange = () => {
+    $('extendNameLabel').hidden = !!$('extendPerson').value;
+    $('extendName').required = !$('extendPerson').value;
+  };
+  $('extendQuantity').oninput = () => {
+    $('extendAmount').value = amountFormat.format(
+      Math.round(Number($('extendQuantity').value) * context.detail.chain.amount_cents) / 100,
+    );
+  };
+  $('extensionAdd').onsubmit = safe(async (e) => {
+    e.preventDefault();
+    const id = $('extendPerson').value,
+      q = Number($('extendQuantity').value);
+    if (!Number.isInteger(q * 2) || q < 0.5 || q > 100)
+      throw Error('Usá puestos completos o medios.');
+    if (id && staged.some((m) => m.existing_id === id))
+      throw Error('Esa persona ya está en la lista de nuevos participantes.');
+    const name = id
+      ? $('extendPerson').selectedOptions[0].textContent
+      : $('extendName').value.trim();
+    if (!name) throw Error('Escribí el nombre.');
+    staged.push({
+      key: 'new_' + crypto.randomUUID(),
+      existing_id: id,
+      name,
+      quantity: Math.ceil(q),
+      half_units: q * 2,
+      contribution_cents: parseCents($('extendAmount').value, 1),
+    });
+    $('extensionAdd').reset();
+    $('extendNameLabel').hidden = false;
+    $('extendName').required = true;
+    $('extendAmount').value = amountFormat.format(context.detail.chain.amount_cents / 100);
+    resetOrder();
+    render();
+  });
+  $('extensionStaged').onclick = (e) => {
+    const b = e.target.closest('[data-stage-remove]');
+    if (b) {
+      staged = staged.filter((m) => m.key !== b.dataset.stageRemove);
+      resetOrder();
+      render();
+    }
+  };
+  $('extensionPreview').onchange = (e) => {
+    const input = e.target.closest('[data-extend-order]');
+    if (!input) return;
+    const i = Number(input.dataset.extendOrder),
+      part = Number(input.dataset.part);
+    let x = -1,
+      y = -1;
+    order.forEach((g, j) =>
+      g.forEach((k, p) => {
+        if (k === input.value) {
+          x = j;
+          y = p;
+        }
+      }),
+    );
+    if (x >= 0) {
+      [order[i][part], order[x][y]] = [order[x][y], order[i][part]];
+      render();
+    }
+  };
+  $('extensionPreview').onclick = (e) => {
+    const b = e.target.closest('[data-extend-move]');
+    if (b) {
+      const i = Number(b.dataset.extendMove),
+        j = i + Number(b.dataset.direction);
+      if (j >= 0 && j < order.length) {
+        [order[i], order[j]] = [order[j], order[i]];
+        render();
+      }
+    }
+  };
+  $('saveExtension').onclick = safe(async () => {
+    if (
+      !confirm(
+        '¿Agregar estos participantes y confirmar el nuevo calendario pendiente? Los cobros realizados y los pagos existentes se conservarán. Los nuevos participantes deberán ponerse al día.',
+      )
+    )
+      return;
+    $('saveExtension').disabled = true;
+    try {
+      const all = pieces();
+      await request('/api/admin/chains/' + context.id + '/extend', {
+        method: 'POST',
+        body: {
+          revision: context.detail.chain.revision,
+          additions: staged.map((m) => ({
+            key: m.key,
+            ...(m.existing_id ? { user_id: m.existing_id } : { name: m.name }),
+            quantity: units(m) / 2,
+            amount_cents: m.contribution_cents,
+          })),
+          order: order.map((g) => ({
+            participants: g.map((key) => {
+              const p = all.find((p) => p.key === key);
+              return { user_id: p.user_id, slot_number: p.slot_number };
+            }),
+          })),
+        },
+      });
+      $('extensionDialog').close();
+      await context.onSaved();
+      message(
+        'Participantes agregados y calendario pendiente actualizado. Revisá los aportes anteriores.',
+      );
+    } finally {
+      $('saveExtension').disabled = false;
+    }
+  });
+  $('capacityForm').onsubmit = safe(async (e) => {
+    e.preventDefault();
+    $('saveCapacity').disabled = true;
+    try {
+      await request('/api/admin/chains/' + context.id + '/capacity', {
+        method: 'POST',
+        body: { capacity: Number($('newCapacity').value) },
+      });
+      $('capacityDialog').close();
+      await context.onSaved();
+      message('Capacidad ampliada. Ya podés agregar participantes.');
+    } finally {
+      $('saveCapacity').disabled = false;
+    }
+  });
 }

@@ -1,15 +1,103 @@
-import {$,esc,mode,dateLabel,message,safe,request,logout,participantToken,saveParticipantToken} from './shared.js';
-let selected=null;
-function screen(id){['login','access','home','detail'].forEach(s=>$(s).hidden=s!==id);scrollTo(0,0)}
-const waiting=n=>n===0?'Tu cobro es el próximo':`Faltan ${n} ${n===1?'turno':'turnos'} para cobrar`;
-$('codeLogin').onsubmit=safe(async e=>{e.preventDefault();$('signin').disabled=true;try{const result=await request('/api/link/redeem',{method:'POST',body:{code:$('linkCode').value}});saveParticipantToken(result.token);$('linkCode').value='';await init();message('Vinculación completada.')}finally{$('signin').disabled=false}});
-async function home(){selected=null;const groups=await request('/api/mine');$('mychains').innerHTML=groups.length?groups.map(c=>`<article class="card groupcard"><span class="badge">${mode(c.frequency)}</span><h3>${esc(c.name)}</h3><p class="muted">${new Intl.NumberFormat('es-AR').format(c.quantity)} ${c.quantity===1?'puesto asignado':'puestos asignados'}</p><p class="big">${c.status==='draft'?'Fechas pendientes del sorteo':c.my_turn_number?waiting(Math.max(0,c.my_turn_number-1-c.completed_count)):'Tus cobros ya fueron registrados'}</p><button class="primary" data-chain="${c.id}">Ver mis puestos y fechas</button></article>`).join(''):'<div class="empty"><h3>Tus cadenas aparecerán acá</h3><p>El administrador todavía no te asignó puestos. Cuando lo haga, tocá Actualizar para verlos.</p></div>';screen('home')}
-async function load(){const {chain:c,quantity,myTurns}=await request('/api/chains/'+selected);$('detail').innerHTML=`<div class="sectionhead"><button class="back" id="back">← Mis cadenas</button><button id="refreshDetail">Actualizar</button></div><span class="badge">${mode(c.frequency)}</span><h1 style="margin-top:12px">${esc(c.name)}</h1><p class="muted">Tenés ${new Intl.NumberFormat('es-AR').format(quantity)} ${quantity===1?'puesto asignado':'puestos asignados'} en esta cadena.</p><div class="collection"><span>Mis puestos y fechas de cobro</span>${myTurns.length?myTurns.map(t=>`<div class="ownturn"><strong>${t.half_units===1?'Medio puesto':'Puesto '+t.slot_number}</strong><span>${dateLabel(t.date)} · Turno de cobro ${t.number}</span><span>${t.completed?'Cobro registrado':waiting(t.turnsUntilCollection)}</span></div>`).join(''):Array.from({length:Math.ceil(quantity)},(_,i)=>`<div class="ownturn"><strong>${quantity%1&&i===Math.ceil(quantity)-1?'Medio puesto':'Puesto '+(i+1)}</strong><span>Fecha pendiente del sorteo</span></div>`).join('')}</div><p class="hint">El administrador gestiona tus puestos y registra los cobros desde la web.</p>`;screen('detail')}
-$('mychains').onclick=safe(async e=>{const b=e.target.closest('[data-chain]');if(!b)return;selected=b.dataset.chain;await load()});
-$('detail').onclick=safe(async e=>{const b=e.target.closest('button');if(b?.id==='back')await home();else if(b?.id==='refreshDetail')await load()});
-$('refresh').onclick=safe(home);
-async function checkAccess(){const a=await request('/api/access',{method:'POST',body:{}});if(a.state==='approved')return home();$('accessText').textContent='Consultá al administrador para habilitar tu acceso y asignarte puestos.';screen('access')}
-$('checkAccess').onclick=safe(checkAccess);
-window.goBackFromAndroid=()=>{if(!$('detail').hidden){home().catch(e=>message(e.message,true));return true}return false};
-async function init(){if(!participantToken()){screen('login');return}try{const me=await request('/api/me');$('account').innerHTML=`<span>${esc(me.name)}</span><button id="logout">Salir</button>`;$('logout').onclick=safe(()=>logout('/participant.html'));await checkAccess()}catch(error){screen('login');if(error.status===401)saveParticipantToken('');message(error.status===401?'Pedí un nuevo código al administrador para volver a ingresar.':error.message,true)}}
+import {
+  $,
+  esc,
+  mode,
+  dateLabel,
+  message,
+  safe,
+  request,
+  logout,
+  participantToken,
+  saveParticipantToken,
+} from './shared.js';
+let selected = null;
+function screen(id) {
+  ['login', 'access', 'home', 'detail'].forEach((s) => ($(s).hidden = s !== id));
+  scrollTo(0, 0);
+}
+const waiting = (n) =>
+  n === 0 ? 'Tu cobro es el próximo' : `Faltan ${n} ${n === 1 ? 'turno' : 'turnos'} para cobrar`;
+$('codeLogin').onsubmit = safe(async (e) => {
+  e.preventDefault();
+  $('signin').disabled = true;
+  try {
+    const result = await request('/api/link/redeem', {
+      method: 'POST',
+      body: { code: $('linkCode').value },
+    });
+    saveParticipantToken(result.token);
+    $('linkCode').value = '';
+    await init();
+    message('Vinculación completada.');
+  } finally {
+    $('signin').disabled = false;
+  }
+});
+async function home() {
+  selected = null;
+  const groups = await request('/api/mine');
+  $('mychains').innerHTML = groups.length
+    ? groups
+        .map(
+          (c) =>
+            `<article class="card groupcard"><span class="badge">${mode(c.frequency)}</span><h3>${esc(c.name)}</h3><p class="muted">${new Intl.NumberFormat('es-AR').format(c.quantity)} ${c.quantity === 1 ? 'puesto asignado' : 'puestos asignados'}</p><p class="big">${c.status === 'draft' ? 'Fechas pendientes del sorteo' : c.my_turn_number ? waiting(Math.max(0, c.my_turn_number - 1 - c.completed_count)) : 'Tus cobros ya fueron registrados'}</p><button class="primary" data-chain="${c.id}">Ver mis puestos y fechas</button></article>`,
+        )
+        .join('')
+    : '<div class="empty"><h3>Tus cadenas aparecerán acá</h3><p>El administrador todavía no te asignó puestos. Cuando lo haga, tocá Actualizar para verlos.</p></div>';
+  screen('home');
+}
+async function load() {
+  const { chain: c, quantity, myTurns } = await request('/api/chains/' + selected);
+  $('detail').innerHTML =
+    `<div class="sectionhead"><button class="back" id="back">← Mis cadenas</button><button id="refreshDetail">Actualizar</button></div><span class="badge">${mode(c.frequency)}</span><h1 style="margin-top:12px">${esc(c.name)}</h1><p class="muted">Tenés ${new Intl.NumberFormat('es-AR').format(quantity)} ${quantity === 1 ? 'puesto asignado' : 'puestos asignados'} en esta cadena.</p><div class="collection"><span>Mis puestos y fechas de cobro</span>${myTurns.length ? myTurns.map((t) => `<div class="ownturn"><strong>${t.half_units === 1 ? 'Medio puesto' : 'Puesto ' + t.slot_number}</strong><span>${dateLabel(t.date)} · Turno de cobro ${t.number}</span><span>${t.completed ? 'Cobro registrado' : waiting(t.turnsUntilCollection)}</span></div>`).join('') : Array.from({ length: Math.ceil(quantity) }, (_, i) => `<div class="ownturn"><strong>${quantity % 1 && i === Math.ceil(quantity) - 1 ? 'Medio puesto' : 'Puesto ' + (i + 1)}</strong><span>Fecha pendiente del sorteo</span></div>`).join('')}</div><p class="hint">El administrador gestiona tus puestos y registra los cobros desde la web.</p>`;
+  screen('detail');
+}
+$('mychains').onclick = safe(async (e) => {
+  const b = e.target.closest('[data-chain]');
+  if (!b) return;
+  selected = b.dataset.chain;
+  await load();
+});
+$('detail').onclick = safe(async (e) => {
+  const b = e.target.closest('button');
+  if (b?.id === 'back') await home();
+  else if (b?.id === 'refreshDetail') await load();
+});
+$('refresh').onclick = safe(home);
+async function checkAccess() {
+  const a = await request('/api/access', { method: 'POST', body: {} });
+  if (a.state === 'approved') return home();
+  $('accessText').textContent =
+    'Consultá al administrador para habilitar tu acceso y asignarte puestos.';
+  screen('access');
+}
+$('checkAccess').onclick = safe(checkAccess);
+window.goBackFromAndroid = () => {
+  if (!$('detail').hidden) {
+    home().catch((e) => message(e.message, true));
+    return true;
+  }
+  return false;
+};
+async function init() {
+  if (!participantToken()) {
+    screen('login');
+    return;
+  }
+  try {
+    const me = await request('/api/me');
+    $('account').innerHTML = `<span>${esc(me.name)}</span><button id="logout">Salir</button>`;
+    $('logout').onclick = safe(() => logout('/participant.html'));
+    await checkAccess();
+  } catch (error) {
+    screen('login');
+    if (error.status === 401) saveParticipantToken('');
+    message(
+      error.status === 401
+        ? 'Pedí un nuevo código al administrador para volver a ingresar.'
+        : error.message,
+      true,
+    );
+  }
+}
 init();

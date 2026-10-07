@@ -1,12 +1,155 @@
-const origin='https://cadena-beta-kr731.kr731453.chatgpt.site/';
-const structuredData={'@context':'https://schema.org','@graph':[{'@type':'WebSite','@id':origin+'#website',url:origin,name:'Ronda',inLanguage:'es-AR'},{'@type':'WebApplication',name:'Ronda',url:origin,applicationCategory:'BusinessApplication',operatingSystem:'Web',description:'Administración de cadenas de pagos, participantes, puestos, fechas de cobro y comprobantes.'}]};
-export default function Home(){return <>
-<link rel="stylesheet" href="/home.css"/>
-<script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(structuredData)}}/>
-<header className="siteheader"><a className="brand" href="/" aria-label="Ronda, inicio"><span aria-hidden="true">◉</span> ronda</a><nav aria-label="Navegación principal"><a className="navlink" href="#como-funciona">Cómo funciona</a><a className="button" href="/admin">Ingresar</a></nav></header>
-<main>
-<section className="hero"><div><p className="eyebrow">CADENAS DE PAGOS · RONDA BETA</p><h1>Tus cadenas de pagos,<br/><span>en orden.</span></h1><p className="intro">Organizá los participantes, sus puestos y las fechas de cobro. Llevá el control de los comprobantes y del efectivo desde el celular, la tablet o la computadora.</p><div className="heroactions"><a className="button primary" href="/admin">Ingresar a mi panel <span aria-hidden="true">↗</span></a><a className="button" href="/admin?register=1">Solicitar una cuenta</a></div><p className="small">Registro sujeto a aprobación. Cada cuenta administra sus propias cadenas.</p></div><aside className="heroaside" aria-label="Qué podés organizar"><p className="eyebrow">CADA DETALLE, EN SU LUGAR</p><div className="overviewline"><span className="number">01</span><div><h2>Participantes y puestos</h2><p>Una persona puede tener varios puestos, con un monto total a pagar.</p></div></div><div className="overviewline"><span className="number">02</span><div><h2>Orden y fechas de cobro</h2><p>Cargá el resultado de tu sorteo manual y revisá el calendario.</p></div></div><div className="overviewline"><span className="number">03</span><div><h2>Pagos y comprobantes</h2><p>Adjuntá comprobantes, aprobá aportes y registrá el efectivo recibido.</p></div></div><div className="frequency"><span>Semanal</span><span>Quincenal</span><span>Mensual</span></div></aside></section>
-<section id="como-funciona" className="how"><p className="eyebrow">UN CONTROL SIMPLE</p><h2>Del primer puesto al último cobro.</h2><div className="steps"><article><span className="step">1</span><h3>Prepará tu cadena</h3><p>Elegí la modalidad, el aporte y la cantidad de puestos. Agregá a cada participante y asignale sus lugares.</p></article><article><span className="step">2</span><h3>Confirmá el calendario</h3><p>Hacé el sorteo por tu cuenta y cargá el orden de cobro. Revisá las fechas antes de confirmarlas.</p></article><article><span className="step">3</span><h3>Controlá cada período</h3><p>Consultá quién pagó y qué falta aprobar. Registrá los cobros y conservá las cadenas terminadas en el historial.</p></article></div></section>
-<section className="accesssection"><div><p className="eyebrow">TU ESPACIO DE ADMINISTRACIÓN</p><h2>Varias cadenas. Un solo panel.</h2><p>Entrá con tu usuario y contraseña desde cualquier dispositivo. Tus participantes, pagos y comprobantes se consultan dentro de tu cuenta.</p></div><a className="button primary" href="/admin">Abrir Ronda <span aria-hidden="true">↗</span></a></section>
-</main><footer><a className="brand" href="/">◉ ronda</a><p>Ronda registra la información que carga el administrador. No realiza transferencias ni verifica movimientos bancarios automáticamente.</p><a href="/admin">Acceso a administración</a></footer>
-</>;}
+const origin = 'https://cadena-beta-kr731.kr731453.chatgpt.site/';
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      '@id': origin + '#website',
+      url: origin,
+      name: 'Ronda',
+      inLanguage: 'es-AR',
+    },
+    {
+      '@type': 'WebApplication',
+      name: 'Ronda',
+      url: origin,
+      applicationCategory: 'BusinessApplication',
+      operatingSystem: 'Web',
+      description:
+        'Administración de cadenas de pagos, participantes, puestos, fechas de cobro y comprobantes.',
+    },
+  ],
+};
+export default function Home() {
+  return (
+    <>
+      <link rel="stylesheet" href="/home.css" />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <header className="siteheader">
+        <a className="brand" href="/" aria-label="Ronda, inicio">
+          <span aria-hidden="true">◉</span> ronda
+        </a>
+        <nav aria-label="Navegación principal">
+          <a className="navlink" href="#como-funciona">
+            Cómo funciona
+          </a>
+          <a className="button" href="/admin">
+            Ingresar
+          </a>
+        </nav>
+      </header>
+      <main>
+        <section className="hero">
+          <div>
+            <p className="eyebrow">CADENAS DE PAGOS · RONDA BETA</p>
+            <h1>
+              Tus cadenas de pagos,
+              <br />
+              <span>en orden.</span>
+            </h1>
+            <p className="intro">
+              Organizá los participantes, sus puestos y las fechas de cobro. Llevá el control de los
+              comprobantes y del efectivo desde el celular, la tablet o la computadora.
+            </p>
+            <div className="heroactions">
+              <a className="button primary" href="/admin">
+                Ingresar a mi panel <span aria-hidden="true">↗</span>
+              </a>
+              <a className="button" href="/admin?register=1">
+                Solicitar una cuenta
+              </a>
+            </div>
+            <p className="small">
+              Registro sujeto a aprobación. Cada cuenta administra sus propias cadenas.
+            </p>
+          </div>
+          <aside className="heroaside" aria-label="Qué podés organizar">
+            <p className="eyebrow">CADA DETALLE, EN SU LUGAR</p>
+            <div className="overviewline">
+              <span className="number">01</span>
+              <div>
+                <h2>Participantes y puestos</h2>
+                <p>Una persona puede tener varios puestos, con un monto total a pagar.</p>
+              </div>
+            </div>
+            <div className="overviewline">
+              <span className="number">02</span>
+              <div>
+                <h2>Orden y fechas de cobro</h2>
+                <p>Cargá el resultado de tu sorteo manual y revisá el calendario.</p>
+              </div>
+            </div>
+            <div className="overviewline">
+              <span className="number">03</span>
+              <div>
+                <h2>Pagos y comprobantes</h2>
+                <p>Adjuntá comprobantes, aprobá aportes y registrá el efectivo recibido.</p>
+              </div>
+            </div>
+            <div className="frequency">
+              <span>Semanal</span>
+              <span>Quincenal</span>
+              <span>Mensual</span>
+            </div>
+          </aside>
+        </section>
+        <section id="como-funciona" className="how">
+          <p className="eyebrow">UN CONTROL SIMPLE</p>
+          <h2>Del primer puesto al último cobro.</h2>
+          <div className="steps">
+            <article>
+              <span className="step">1</span>
+              <h3>Prepará tu cadena</h3>
+              <p>
+                Elegí la modalidad, el aporte y la cantidad de puestos. Agregá a cada participante y
+                asignale sus lugares.
+              </p>
+            </article>
+            <article>
+              <span className="step">2</span>
+              <h3>Confirmá el calendario</h3>
+              <p>
+                Hacé el sorteo por tu cuenta y cargá el orden de cobro. Revisá las fechas antes de
+                confirmarlas.
+              </p>
+            </article>
+            <article>
+              <span className="step">3</span>
+              <h3>Controlá cada período</h3>
+              <p>
+                Consultá quién pagó y qué falta aprobar. Registrá los cobros y conservá las cadenas
+                terminadas en el historial.
+              </p>
+            </article>
+          </div>
+        </section>
+        <section className="accesssection">
+          <div>
+            <p className="eyebrow">TU ESPACIO DE ADMINISTRACIÓN</p>
+            <h2>Varias cadenas. Un solo panel.</h2>
+            <p>
+              Entrá con tu usuario y contraseña desde cualquier dispositivo. Tus participantes,
+              pagos y comprobantes se consultan dentro de tu cuenta.
+            </p>
+          </div>
+          <a className="button primary" href="/admin">
+            Abrir Ronda <span aria-hidden="true">↗</span>
+          </a>
+        </section>
+      </main>
+      <footer>
+        <a className="brand" href="/">
+          ◉ ronda
+        </a>
+        <p>
+          Ronda registra la información que carga el administrador. No realiza transferencias ni
+          verifica movimientos bancarios automáticamente.
+        </p>
+        <a href="/admin">Acceso a administración</a>
+      </footer>
+    </>
+  );
+}

@@ -3,27 +3,227 @@
 // See examples/d1/db/schema.ts for an opt-in example.
 export {};
 import { sqliteTable, text, integer, primaryKey, uniqueIndex } from 'drizzle-orm/sqlite-core';
-export const users = sqliteTable('users', { id:text('id').primaryKey(), name:text('name').notNull(), created:text('created').notNull(), createdBy:text('created_by'),dni:text('dni') },t=>[uniqueIndex('one_dni_per_owner').on(t.createdBy,t.dni)]);
-export const admins = sqliteTable('admins', { userId:text('user_id').primaryKey().references(()=>users.id),role:text('role').notNull().default('manager') });
-export const chains = sqliteTable('chains', { id:text('id').primaryKey(), name:text('name').notNull(), amount:integer('amount_cents').notNull(), currency:text('currency').notNull(), frequency:text('frequency').notNull(), start:text('start_date').notNull(), capacity:integer('capacity').notNull(), status:text('status').notNull().default('draft'), drawId:text('draw_id'), archivedAt:text('archived_at'), ownerId:text('owner_id').references(()=>users.id), revision:integer('revision').notNull().default(0), editToken:text('edit_token'), created:text('created').notNull() });
-export const members = sqliteTable('members', { chainId:text('chain_id').notNull().references(()=>chains.id), userId:text('user_id').notNull().references(()=>users.id), quantity:integer('quantity').notNull().default(1), contribution:integer('contribution_cents'), halfUnits:integer('half_units'),addedAfter:integer('added_after_turn').notNull().default(0), state:text('state').notNull().default('pending'), joined:text('joined').notNull() }, t=>[primaryKey({columns:[t.chainId,t.userId]})]);
-export const turns = sqliteTable('turns', { chainId:text('chain_id').notNull().references(()=>chains.id), number:integer('number').notNull(), userId:text('user_id').notNull().references(()=>users.id), slot:integer('slot_number').notNull().default(1), date:text('date').notNull(), completed:text('completed'),fund:integer('fund_cents') },t=>[primaryKey({columns:[t.chainId,t.number]}),uniqueIndex('one_turn_per_slot').on(t.chainId,t.userId,t.slot)]);
-export const receipts = sqliteTable('receipts', { id:text('id').primaryKey(), chainId:text('chain_id').notNull().references(()=>chains.id), turn:integer('turn_number').notNull(), userId:text('user_id').notNull().references(()=>users.id), slot:integer('slot_number').notNull().default(1), key:text('r2_key').notNull(), filename:text('filename').notNull(), mime:text('mime').notNull(), state:text('state').notNull().default('pending'), uploaded:text('uploaded').notNull(), reviewed:text('reviewed'), method:text('payment_method').notNull().default('transfer'), paidDate:text('paid_date'), note:text('note'), recordedBy:text('recorded_by').references(()=>users.id), amount:integer('amount_cents'), group:text('group_id'),arrear:integer('is_arrear').notNull().default(0) },t=>[uniqueIndex('one_receipt_per_turn_slot').on(t.chainId,t.turn,t.userId,t.slot)]);
-export const mobileCodes = sqliteTable('mobile_codes', { code:text('code_hash').primaryKey(), userId:text('user_id').notNull().references(()=>users.id), challenge:text('challenge').notNull(), expires:integer('expires').notNull() });
-export const sessions = sqliteTable('sessions', { hash:text('token_hash').primaryKey(), userId:text('user_id').notNull().references(()=>users.id), expires:integer('expires').notNull() });
-export const accessRequests = sqliteTable('access_requests', { userId:text('user_id').primaryKey().references(()=>users.id), state:text('state').notNull().default('pending'), created:text('created').notNull(), reviewed:text('reviewed') });
-export const linkCodes = sqliteTable('link_codes', { code:text('code_hash').primaryKey(), userId:text('user_id').notNull().references(()=>users.id), created:text('created').notNull(), expires:integer('expires').notNull(), consumed:text('consumed') });
-export const loginLimits = sqliteTable('login_limits', { key:text('key').primaryKey(), attempts:integer('attempts').notNull().default(0), expires:integer('expires').notNull() });
+export const users = sqliteTable(
+  'users',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    created: text('created').notNull(),
+    createdBy: text('created_by'),
+    dni: text('dni'),
+  },
+  (t) => [uniqueIndex('one_dni_per_owner').on(t.createdBy, t.dni)],
+);
+export const admins = sqliteTable('admins', {
+  userId: text('user_id')
+    .primaryKey()
+    .references(() => users.id),
+  role: text('role').notNull().default('manager'),
+});
+export const chains = sqliteTable('chains', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  amount: integer('amount_cents').notNull(),
+  currency: text('currency').notNull(),
+  frequency: text('frequency').notNull(),
+  start: text('start_date').notNull(),
+  capacity: integer('capacity').notNull(),
+  status: text('status').notNull().default('draft'),
+  drawId: text('draw_id'),
+  archivedAt: text('archived_at'),
+  ownerId: text('owner_id').references(() => users.id),
+  revision: integer('revision').notNull().default(0),
+  editToken: text('edit_token'),
+  created: text('created').notNull(),
+});
+export const members = sqliteTable(
+  'members',
+  {
+    chainId: text('chain_id')
+      .notNull()
+      .references(() => chains.id),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id),
+    quantity: integer('quantity').notNull().default(1),
+    contribution: integer('contribution_cents'),
+    halfUnits: integer('half_units'),
+    addedAfter: integer('added_after_turn').notNull().default(0),
+    state: text('state').notNull().default('pending'),
+    joined: text('joined').notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.chainId, t.userId] })],
+);
+export const turns = sqliteTable(
+  'turns',
+  {
+    chainId: text('chain_id')
+      .notNull()
+      .references(() => chains.id),
+    number: integer('number').notNull(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id),
+    slot: integer('slot_number').notNull().default(1),
+    date: text('date').notNull(),
+    completed: text('completed'),
+    fund: integer('fund_cents'),
+  },
+  (t) => [
+    primaryKey({ columns: [t.chainId, t.number] }),
+    uniqueIndex('one_turn_per_slot').on(t.chainId, t.userId, t.slot),
+  ],
+);
+export const receipts = sqliteTable(
+  'receipts',
+  {
+    id: text('id').primaryKey(),
+    chainId: text('chain_id')
+      .notNull()
+      .references(() => chains.id),
+    turn: integer('turn_number').notNull(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id),
+    slot: integer('slot_number').notNull().default(1),
+    key: text('r2_key').notNull(),
+    filename: text('filename').notNull(),
+    mime: text('mime').notNull(),
+    state: text('state').notNull().default('pending'),
+    uploaded: text('uploaded').notNull(),
+    reviewed: text('reviewed'),
+    method: text('payment_method').notNull().default('transfer'),
+    paidDate: text('paid_date'),
+    note: text('note'),
+    recordedBy: text('recorded_by').references(() => users.id),
+    amount: integer('amount_cents'),
+    group: text('group_id'),
+    arrear: integer('is_arrear').notNull().default(0),
+  },
+  (t) => [uniqueIndex('one_receipt_per_turn_slot').on(t.chainId, t.turn, t.userId, t.slot)],
+);
+export const mobileCodes = sqliteTable('mobile_codes', {
+  code: text('code_hash').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id),
+  challenge: text('challenge').notNull(),
+  expires: integer('expires').notNull(),
+});
+export const sessions = sqliteTable('sessions', {
+  hash: text('token_hash').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id),
+  expires: integer('expires').notNull(),
+});
+export const accessRequests = sqliteTable('access_requests', {
+  userId: text('user_id')
+    .primaryKey()
+    .references(() => users.id),
+  state: text('state').notNull().default('pending'),
+  created: text('created').notNull(),
+  reviewed: text('reviewed'),
+});
+export const linkCodes = sqliteTable('link_codes', {
+  code: text('code_hash').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id),
+  created: text('created').notNull(),
+  expires: integer('expires').notNull(),
+  consumed: text('consumed'),
+});
+export const loginLimits = sqliteTable('login_limits', {
+  key: text('key').primaryKey(),
+  attempts: integer('attempts').notNull().default(0),
+  expires: integer('expires').notNull(),
+});
 
-export const adminCredentials = sqliteTable('admin_credentials', { userId:text('user_id').primaryKey().references(()=>users.id), username:text('username').notNull().unique(), digest:text('digest').notNull(), salt:text('salt').notNull(), updated:text('updated').notNull() });
-export const dues = sqliteTable('dues', { chainId:text('chain_id').notNull().references(()=>chains.id), userId:text('user_id').notNull().references(()=>users.id), turn:integer('turn_number').notNull(), amount:integer('amount_cents').notNull(), updated:text('updated').notNull() },t=>[primaryKey({columns:[t.chainId,t.userId,t.turn]})]);
+export const adminCredentials = sqliteTable('admin_credentials', {
+  userId: text('user_id')
+    .primaryKey()
+    .references(() => users.id),
+  username: text('username').notNull().unique(),
+  digest: text('digest').notNull(),
+  salt: text('salt').notNull(),
+  updated: text('updated').notNull(),
+});
+export const dues = sqliteTable(
+  'dues',
+  {
+    chainId: text('chain_id')
+      .notNull()
+      .references(() => chains.id),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id),
+    turn: integer('turn_number').notNull(),
+    amount: integer('amount_cents').notNull(),
+    updated: text('updated').notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.chainId, t.userId, t.turn] })],
+);
 
-export const fileDeletions = sqliteTable('file_deletions', {key:text('key').primaryKey(),created:text('created').notNull()});
+export const fileDeletions = sqliteTable('file_deletions', {
+  key: text('key').primaryKey(),
+  created: text('created').notNull(),
+});
 
-export const accountRequests = sqliteTable('account_requests', {userId:text('user_id').primaryKey().references(()=>users.id),state:text('state').notNull().default('pending'),created:text('created').notNull(),reviewed:text('reviewed'),reviewedBy:text('reviewed_by').references(()=>users.id)});
+export const accountRequests = sqliteTable('account_requests', {
+  userId: text('user_id')
+    .primaryKey()
+    .references(() => users.id),
+  state: text('state').notNull().default('pending'),
+  created: text('created').notNull(),
+  reviewed: text('reviewed'),
+  reviewedBy: text('reviewed_by').references(() => users.id),
+});
 
-export const turnShares = sqliteTable('turn_shares', {chainId:text('chain_id').notNull().references(()=>chains.id),turn:integer('turn_number').notNull(),userId:text('user_id').notNull().references(()=>users.id),slot:integer('slot_number').notNull(),halfUnits:integer('half_units').notNull(),position:integer('position').notNull()},t=>[primaryKey({columns:[t.chainId,t.turn,t.userId,t.slot]}),uniqueIndex('one_collection_per_share').on(t.chainId,t.userId,t.slot)]);
+export const turnShares = sqliteTable(
+  'turn_shares',
+  {
+    chainId: text('chain_id')
+      .notNull()
+      .references(() => chains.id),
+    turn: integer('turn_number').notNull(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id),
+    slot: integer('slot_number').notNull(),
+    halfUnits: integer('half_units').notNull(),
+    position: integer('position').notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.chainId, t.turn, t.userId, t.slot] }),
+    uniqueIndex('one_collection_per_share').on(t.chainId, t.userId, t.slot),
+  ],
+);
 
-export const extraDeliveries = sqliteTable('extra_deliveries',{id:text('id').primaryKey(),chainId:text('chain_id').notNull().references(()=>chains.id),turn:integer('turn_number').notNull(),userId:text('user_id').notNull().references(()=>users.id),amount:integer('amount_cents').notNull(),paidDate:text('paid_date').notNull(),note:text('note'),recordedBy:text('recorded_by').notNull().references(()=>users.id),created:text('created').notNull()});
+export const extraDeliveries = sqliteTable('extra_deliveries', {
+  id: text('id').primaryKey(),
+  chainId: text('chain_id')
+    .notNull()
+    .references(() => chains.id),
+  turn: integer('turn_number').notNull(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id),
+  amount: integer('amount_cents').notNull(),
+  paidDate: text('paid_date').notNull(),
+  note: text('note'),
+  recordedBy: text('recorded_by')
+    .notNull()
+    .references(() => users.id),
+  created: text('created').notNull(),
+});
 
-export const chainNotes = sqliteTable('chain_notes',{chainId:text('chain_id').primaryKey().references(()=>chains.id),data:text('data').notNull(),revision:integer('revision').notNull().default(0),editToken:text('edit_token'),updated:text('updated').notNull()});
+export const chainNotes = sqliteTable('chain_notes', {
+  chainId: text('chain_id')
+    .primaryKey()
+    .references(() => chains.id),
+  data: text('data').notNull(),
+  revision: integer('revision').notNull().default(0),
+  editToken: text('edit_token'),
+  updated: text('updated').notNull(),
+});
