@@ -1,14 +1,10 @@
+import { newSession, sessionUser, endSession } from './admin-sessions.js';
 const now = () => new Date().toISOString();
 const fail = (status, message) => {
   throw Object.assign(new Error(message), { status });
 };
 const b64 = (bytes) => btoa(String.fromCharCode(...bytes));
 const bytes = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
-const random = () =>
-  b64(crypto.getRandomValues(new Uint8Array(32)))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
 const hash = async (text) =>
   b64(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))))
     .replace(/\+/g, '-')
@@ -53,32 +49,7 @@ export async function digest(password, salt, env) {
   );
   return b64(new Uint8Array(await crypto.subtle.sign('HMAC', pepper, derived)));
 }
-export const cookieToken = (request) =>
-  (/(?:^|;\s*)__Host-ronda_admin=([A-Za-z0-9_-]{43})(?:;|$)/.exec(
-    request.headers.get('Cookie') || '',
-  ) || [])[1] || '';
-const cookie = (token) =>
-  `__Host-ronda_admin=${token}; Path=/; Secure; HttpOnly; SameSite=Lax; Max-Age=${token ? 30 * 86400 : 0}`;
-const json = (data, token) =>
-  new Response(JSON.stringify(data), {
-    headers: {
-      'Content-Type': 'application/json',
-      'Cache-Control': 'no-store',
-      ...(token !== undefined ? { 'Set-Cookie': cookie(token) } : {}),
-    },
-  });
-async function session(env, id) {
-  const token = random();
-  await run(env.DB, 'DELETE FROM sessions WHERE expires<?', Date.now());
-  await run(
-    env.DB,
-    'INSERT INTO sessions(token_hash,user_id,expires) VALUES(?,?,?)',
-    await hash(token),
-    id,
-    Date.now() + 30 * 86400000,
-  );
-  return token;
-}
+const json = (data) => Response.json(data, { headers: { 'Cache-Control': 'no-store' } });
 export async function rate(request, env, username) {
   const bucket = Math.floor(Date.now() / 900000),
     ip = request.headers.get('CF-Connecting-IP') || 'unknown';
@@ -127,19 +98,9 @@ export async function passwordLogin(request, env) {
         ? 'Tu solicitud está pendiente de aprobación.'
         : 'Tu cuenta no tiene acceso autorizado.',
     );
-  return json({ ok: true }, await session(env, row.user_id));
+  return newSession(env, row.user_id);
 }
-export async function cookieUser(request, env) {
-  const token = cookieToken(request);
-  if (!token) return null;
-  const row = await first(
-    env.DB,
-    'SELECT u.id,u.name,a.role FROM sessions s JOIN users u ON u.id=s.user_id JOIN admins a ON a.user_id=u.id WHERE s.token_hash=? AND s.expires>?',
-    await hash(token),
-    Date.now(),
-  );
-  return row ? { ...row, admin: true, owner: row.role === 'owner', auth: 'password' } : null;
-}
+export const cookieUser = sessionUser;
 export async function passwordCredentials(request, env, u) {
   const row = await first(
     env.DB,
@@ -181,11 +142,8 @@ export async function passwordCredentials(request, env, u) {
       'INSERT INTO admin_credentials(user_id,username,digest,salt,updated) VALUES(?,?,?,?,?) ON CONFLICT(user_id) DO UPDATE SET username=excluded.username,digest=excluded.digest,salt=excluded.salt,updated=excluded.updated',
     ).bind(u.id, username, value, salt, now()),
     env.DB.prepare('DELETE FROM sessions WHERE user_id=?').bind(u.id),
+    env.DB.prepare('UPDATE admin_sessions SET revoked=1 WHERE user_id=?').bind(u.id),
   ]);
-  return json({ ok: true, username }, await session(env, u.id));
+  return newSession(env, u.id, { ok: true, username });
 }
-export async function passwordLogout(request, env) {
-  const token = cookieToken(request);
-  if (token) await run(env.DB, 'DELETE FROM sessions WHERE token_hash=?', await hash(token));
-  return json({ ok: true }, '');
-}
+export const passwordLogout = endSession;

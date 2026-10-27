@@ -1,3 +1,5 @@
+import { refreshSession, jwksResponse, requireSessionOrigin } from './admin-sessions.js';
+import { receiptForm, validateReceipt, storeReceipt, discardReceipt } from './receipt-files.js';
 import { chainNotes } from './chain-notes.js';
 import { extendChain, recordExtraDelivery } from './chain-extension.js';
 import { allocateContribution, chainTurns, saveSharedOrder, memberUnits } from './seat-shares.js';
@@ -233,18 +235,6 @@ async function chainDetails(env, id, u, admin) {
     currentTurn: turns.find((t) => !t.completed) || null,
   };
 }
-function checkFile(bytes, mime) {
-  return mime === 'application/pdf'
-    ? new TextDecoder().decode(bytes.slice(0, 5)) === '%PDF-'
-    : mime === 'image/png'
-      ? bytes[0] === 137 && bytes[1] === 80 && bytes[2] === 78 && bytes[3] === 71
-      : mime === 'image/jpeg'
-        ? bytes[0] === 255 && bytes[1] === 216
-        : mime === 'image/webp'
-          ? new TextDecoder().decode(bytes.slice(0, 4)) === 'RIFF' &&
-            new TextDecoder().decode(bytes.slice(8, 12)) === 'WEBP'
-          : false;
-}
 async function uploadReceipt(request, env, url, id, ownerId, recorder) {
   const db = env.DB;
   const turn = Number(url.searchParams.get('turn')),
@@ -261,15 +251,8 @@ async function uploadReceipt(request, env, url, id, ownerId, recorder) {
   if (!Number.isInteger(turn) || turn < 1) fail(400, 'Elegí un turno.');
   const t = await first(db, 'SELECT completed FROM turns WHERE chain_id=? AND number=?', id, turn);
   if (!t || t.completed) fail(409, 'Este turno no admite nuevos comprobantes.');
-  if (Number(request.headers.get('Content-Length') || 0) > 6 * 1024 * 1024)
-    fail(413, 'El comprobante supera los 5 MB.');
-  const form = await request.formData(),
-    file = form.get('file');
-  if (!(file instanceof File) || file.size < 1 || file.size > 5 * 1024 * 1024)
-    fail(400, 'Elegí un comprobante de hasta 5 MB.');
-  const bytes = await file.arrayBuffer();
-  if (!checkFile(new Uint8Array(bytes), file.type))
-    fail(400, 'Usá un archivo JPG, PNG, WebP o PDF válido.');
+  const form = await receiptForm(request);
+  const file = await validateReceipt(form.get('file'));
   const due =
       (
         await first(
@@ -295,7 +278,7 @@ async function uploadReceipt(request, env, url, id, ownerId, recorder) {
   if (existing?.state === 'approved') fail(409, 'El pago ya está aprobado.');
   const receiptId = existing?.id || crypto.randomUUID(),
     key = crypto.randomUUID();
-  await env.BUCKET.put(key, bytes, { httpMetadata: { contentType: file.type } });
+  await storeReceipt(env.BUCKET, key, file);
   try {
     const result = await run(
       db,
@@ -306,22 +289,22 @@ async function uploadReceipt(request, env, url, id, ownerId, recorder) {
       ownerId,
       slot,
       key,
-      file.name.slice(0, 180),
-      file.type,
+      file.filename,
+      file.mime,
       now(),
       recorder,
       seatAmount,
     );
     if (!result.meta.changes) fail(409, 'El pago ya fue aprobado.');
   } catch (error) {
-    await env.BUCKET.delete(key);
+    await discardReceipt(env.BUCKET, key);
     throw error;
   }
   if (
     existing?.r2_key &&
     !(await first(db, 'SELECT id FROM receipts WHERE r2_key=? LIMIT 1', existing.r2_key))
   )
-    await env.BUCKET.delete(existing.r2_key);
+    await discardReceipt(env.BUCKET, existing.r2_key);
   return json({ ok: true });
 }
 async function issueLinkCode(env, owner) {
@@ -373,6 +356,12 @@ export async function handle(request, env) {
       fail(503, 'El almacenamiento compartido todavía no está disponible.');
     const allowedOrigins = [url.origin, 'https://appassets.androidplatform.net'];
     if (origin && !allowedOrigins.includes(origin)) fail(403, 'Origen no autorizado.');
+    if (
+      !['GET', 'HEAD', 'OPTIONS'].includes(request.method) &&
+      !request.headers.get('Authorization') &&
+      request.headers.get('Cookie')?.includes('__Host-ronda_')
+    )
+      requireSessionOrigin(request);
     if (request.method === 'OPTIONS') response = new Response(null, { status: 204 });
     else response = await dispatch(request, env, url);
   } catch (error) {
@@ -521,6 +510,10 @@ async function dispatch(request, env, url) {
     return json({ token });
   }
   if (path === '/api/admin/register' && method === 'POST') return registerAccount(request, env);
+  if (path === '/api/auth/jwks' && method === 'GET') return jwksResponse(env);
+  if (path === '/api/refresh-token' && method === 'POST') return refreshSession(request, env);
+  if (path === '/api/logout' && method === 'POST' && !request.headers.get('Authorization'))
+    return passwordLogout(request, env);
   if (path === '/api/admin/login' && method === 'POST') return passwordLogin(request, env);
   if (path === '/api/admin/logout' && method === 'POST') return passwordLogout(request, env);
   const u = await mustUser(request, env);

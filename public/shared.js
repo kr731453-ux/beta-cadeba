@@ -1,3 +1,4 @@
+import { sessionFetch } from './session-fetch.js';
 export const API_BASE = window.RondaAndroid
   ? 'https://cadena-beta-kr731.kr731453.chatgpt.site'
   : location.origin;
@@ -93,16 +94,24 @@ export async function request(path, { method = 'GET', body, raw = false, signal 
   }
   let response;
   try {
-    response = await fetch(API_BASE + path, {
-      method,
-      headers,
-      body,
-      credentials: participant ? 'omit' : 'same-origin',
-      cache: 'no-store',
-      signal: signal
-        ? AbortSignal.any([signal, AbortSignal.timeout(25000)])
-        : AbortSignal.timeout(25000),
-    });
+    response = await sessionFetch(
+      API_BASE,
+      path,
+      {
+        method,
+        headers,
+        body,
+        credentials: participant ? 'omit' : 'same-origin',
+        cache: 'no-store',
+        signal: signal
+          ? AbortSignal.any([
+              signal,
+              AbortSignal.timeout(body instanceof FormData ? 120000 : 25000),
+            ])
+          : AbortSignal.timeout(25000),
+      },
+      { participant },
+    );
   } catch (error) {
     if (error.name === 'TimeoutError' || error instanceof TypeError)
       throw Error(

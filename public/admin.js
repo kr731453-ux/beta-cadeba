@@ -662,7 +662,7 @@ function bindTab() {
       const f = input.files[0],
         target = uploadTarget;
       if (!f || !target) return;
-      if (f.size > 5 * 1024 * 1024) throw Error('El comprobante supera los 5 MB.');
+      if (f.size > 10 * 1024 * 1024) throw Error('El comprobante supera los 10 MB.');
       input.disabled = true;
       const buttons = [...document.querySelectorAll('[data-group-upload],[data-upload-user]')];
       const previous = buttons.map((button) => [button, button.disabled, button.textContent]);

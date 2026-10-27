@@ -2,7 +2,14 @@
 // Add Drizzle tables here when the site actually needs a database.
 // See examples/d1/db/schema.ts for an opt-in example.
 export {};
-import { sqliteTable, text, integer, primaryKey, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import {
+  sqliteTable,
+  text,
+  integer,
+  primaryKey,
+  uniqueIndex,
+  index,
+} from 'drizzle-orm/sqlite-core';
 export const users = sqliteTable(
   'users',
   {
@@ -227,3 +234,28 @@ export const chainNotes = sqliteTable('chain_notes', {
   editToken: text('edit_token'),
   updated: text('updated').notNull(),
 });
+
+export const adminSessions = sqliteTable(
+  'admin_sessions',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id),
+    refreshHash: text('refresh_hash').notNull(),
+    expires: integer('expires').notNull(),
+    revoked: integer('revoked').notNull().default(0),
+  },
+  (t) => [index('admin_sessions_user').on(t.userId)],
+);
+export const adminRefreshTokens = sqliteTable(
+  'admin_refresh_tokens',
+  {
+    tokenHash: text('token_hash').primaryKey(),
+    sessionId: text('session_id')
+      .notNull()
+      .references(() => adminSessions.id, { onDelete: 'cascade' }),
+    usedAt: integer('used_at'),
+  },
+  (t) => [index('admin_refresh_family').on(t.sessionId)],
+);

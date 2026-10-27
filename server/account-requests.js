@@ -84,6 +84,7 @@ export async function accountRequests(request, env, u, url) {
       ? db.prepare("INSERT OR IGNORE INTO admins(user_id,role) VALUES(?,'manager')").bind(id)
       : db.prepare("DELETE FROM admins WHERE user_id=? AND role='manager'").bind(id),
     db.prepare('DELETE FROM sessions WHERE user_id=?').bind(id),
+    db.prepare('UPDATE admin_sessions SET revoked=1 WHERE user_id=?').bind(id),
   ]);
   return json({ ok: true, state: approved ? 'approved' : 'rejected' });
 }

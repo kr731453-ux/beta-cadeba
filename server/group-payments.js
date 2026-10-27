@@ -1,3 +1,4 @@
+import { receiptForm, validateReceipt, storeReceipt, discardReceipt } from './receipt-files.js';
 import { allocateContribution, memberUnits } from './seat-shares.js';
 const fail = (status, message) => {
   throw Object.assign(new Error(message), { status });
@@ -25,27 +26,13 @@ async function body(request) {
     fail(415, 'Datos inválidos.');
   return request.json();
 }
-function validFile(bytes, mime) {
-  return mime === 'application/pdf'
-    ? new TextDecoder().decode(bytes.slice(0, 5)) === '%PDF-'
-    : mime === 'image/png'
-      ? bytes[0] === 137 && bytes[1] === 80 && bytes[2] === 78 && bytes[3] === 71
-      : mime === 'image/jpeg'
-        ? bytes[0] === 255 && bytes[1] === 216
-        : mime === 'image/webp'
-          ? new TextDecoder().decode(bytes.slice(0, 4)) === 'RIFF' &&
-            new TextDecoder().decode(bytes.slice(8, 12)) === 'WEBP'
-          : false;
-}
 export async function groupedPayment(request, env, u, chain, action) {
   const db = env.DB,
     id = chain.id;
   let data,
     file = null;
   if (action === 'group-payments/file') {
-    if (Number(request.headers.get('Content-Length') || 0) > 6 * 1024 * 1024)
-      fail(413, 'El comprobante supera los 5 MB.');
-    const form = await request.formData();
+    const form = await receiptForm(request);
     data = { user_id: form.get('user_id'), turn_number: form.get('turn_number') };
     file = form.get('file');
   } else data = await body(request);
@@ -133,15 +120,11 @@ export async function groupedPayment(request, env, u, chain, action) {
     filename = 'Pago en efectivo',
     mime = 'application/octet-stream';
   if (!cash) {
-    if (!(file instanceof File) || file.size < 1 || file.size > 5 * 1024 * 1024)
-      fail(400, 'Elegí un comprobante de hasta 5 MB.');
-    const bytes = await file.arrayBuffer();
-    if (!validFile(new Uint8Array(bytes), file.type))
-      fail(400, 'Usá un archivo JPG, PNG, WebP o PDF válido.');
+    const validated = await validateReceipt(file);
     key = crypto.randomUUID();
-    filename = file.name.slice(0, 180);
-    mime = file.type;
-    await env.BUCKET.put(key, bytes, { httpMetadata: { contentType: mime } });
+    filename = validated.filename;
+    mime = validated.mime;
+    await storeReceipt(env.BUCKET, key, validated);
   }
   const group = crypto.randomUUID(),
     amounts = allocateContribution(expected, m);
@@ -195,7 +178,7 @@ export async function groupedPayment(request, env, u, chain, action) {
     if (results.some((r) => !r.meta.changes))
       fail(409, 'El importe o los pagos cambiaron. Actualizá el período antes de continuar.');
   } catch (e) {
-    if (key) await env.BUCKET.delete(key);
+    if (key) await discardReceipt(env.BUCKET, key);
     throw e;
   }
   return json({ ok: true, amount_cents: expected }, 201);
