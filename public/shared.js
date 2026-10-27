@@ -108,7 +108,7 @@ export async function request(path, { method = 'GET', body, raw = false, signal 
               signal,
               AbortSignal.timeout(body instanceof FormData ? 120000 : 25000),
             ])
-          : AbortSignal.timeout(25000),
+          : AbortSignal.timeout(body instanceof FormData ? 120000 : 25000),
       },
       { participant },
     );

@@ -438,3 +438,41 @@ test('real API: password login, refresh, grouped PDF persistence, permission che
   assert.equal(logout.status, 200);
   assert.equal((await call('/api/me', { cookies })).status, 401);
 });
+
+test('shared request gives multipart uploads 120 seconds with and without a caller signal', async () => {
+  const saved = {
+    fetch: globalThis.fetch,
+    window: globalThis.window,
+    location: globalThis.location,
+    document: globalThis.document,
+    timeout: AbortSignal.timeout,
+  };
+  const seen = [];
+  try {
+    globalThis.window = {};
+    globalThis.location = { origin: 'https://ronda.test' };
+    globalThis.document = { body: { classList: { contains: () => false } } };
+    AbortSignal.timeout = (ms) => {
+      seen.push(ms);
+      return new AbortController().signal;
+    };
+    globalThis.fetch = async (url, options) => {
+      if (options.body instanceof FormData)
+        assert.equal(new Headers(options.headers).get('Content-Type'), null);
+      return Response.json({ ok: true });
+    };
+    const { request } = await import('../public/shared.js');
+    const f = new FormData();
+    f.append('file', new File(['%PDF-'], 'test.pdf'));
+    await request('/api/test', { method: 'POST', body: f });
+    await request('/api/test', { method: 'POST', body: f, signal: new AbortController().signal });
+    await request('/api/test', { method: 'POST', body: {} });
+    assert.deepEqual(seen, [120000, 120000, 25000]);
+  } finally {
+    globalThis.fetch = saved.fetch;
+    globalThis.window = saved.window;
+    globalThis.location = saved.location;
+    globalThis.document = saved.document;
+    AbortSignal.timeout = saved.timeout;
+  }
+});
